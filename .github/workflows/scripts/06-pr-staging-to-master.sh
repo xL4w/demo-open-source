@@ -4,7 +4,7 @@ set -e  # Exit immediately if a command fails
 # Test Case 06: PR from staging to master (Allowed)
 
 # Source common helper functions
-source ./common_functions.sh
+source ./.github/workflows/scripts/common_functions.sh
 
 # Mock GitHub environment variables
 export GITHUB_REF=refs/heads/staging

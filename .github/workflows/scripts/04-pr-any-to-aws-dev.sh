@@ -5,7 +5,7 @@ set -e  # Exit immediately if a command fails
 # Test Case 04: PR from Any Branch to aws-dev (Allowed)
 
 # Source common helper functions
-source ./common_functions.sh
+source ./.github/workflows/scripts/common_functions.sh
 
 # Mock GitHub environment variables for a PR from a feature branch to aws-dev
 export GITHUB_REF=refs/heads/feature/my-new-feature
