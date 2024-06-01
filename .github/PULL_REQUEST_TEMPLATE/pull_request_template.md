@@ -1,51 +1,66 @@
 ## Pull Request Title
 
-**Description:**
+Provide a clear and concise title summarizing the change (e.g., "Add user authentication feature" or "Fix bug in inventory calculation").
 
-A brief description of the changes introduced in this pull request. Be sure to include:
+## Description
 
-* The problem this PR solves
-* The specific changes made
-* Any relevant context or background information
+**What does this PR do?**
 
-**Code Reviewers:**
+* Concisely describe the problem this pull request solves or the feature it adds.
+* Explain the changes made in detail, including specific code modifications, new files, or configuration adjustments.
+* Provide any relevant background information or context to help reviewers understand the changes.
 
-* **@mbsimonovic** (Only for Infrastructure PRs)
-* **@GTCrais** (Only for Applications PRs)
-* **@CTLLaw** (**Required for Production deployments**)
+* **Specify whether this PR is related to Applications or Infrastructure changes.**
+    - [ ] **Applications**
+    - [ ] **Infrastructure**
+
+**How was this tested?**
+
+* Describe the testing strategy you used (e.g., unit tests, integration tests, manual testing).
+* List the specific tests you ran to verify the correctness of your changes.
+* If applicable, include any screenshots or other evidence of successful testing.
+
+## Related Issues or Tickets
+
+List any related issues or tickets (e.g., Jira tickets) that this pull request addresses.
+
+* Jira Link: [https://nucleuslegalcloud.atlassian.net/browse/ID](https://nucleuslegalcloud.atlassian.net/browse/ID) (Replace `ID` with the actual Jira task, associated to Your PR.)
+
+## Code Reviewers and Approval Process
 
 **Important:**
 
-* Please **do not** manually assign additional reviewers. The appropriate reviewers will be automatically added based on the code changes and target branch. 
-* If you believe someone else needs to be involved in the review, please mention them in a comment.
+* **Do not** manually assign additional reviewers. The system will automatically add the required reviewers based on the target branch and changes:
+    * **@GTCrais:** Required for all Application changes.\
+    * **@mbsimonovic:** Required for all Infrastructure changes.
+    * **@CTLLaw:** Required for all changes targeting the `master` branch.
 
-**Checklist for Contributors:**
-
-- [ ] I have provided a detailed description of the changes and their purpose.
-- [ ] I have ensured all tests pass before submitting the PR.
-- [ ] I have not modified any existing migration files.
-- [ ] I have cleaned up my code: no unnecessary files, no commented-out code, no logging (console or Debugbar), and clear function/method/property names.
-
-**Ticket Associated:**
-
-- [Jira Link](https://xsolve.atlassian.net/browse/PROJECT_KEY) (Please replace `PROJECT_KEY` with the actual Jira project key)
-
-**Branch Targeting:**
-
-This pull request **must** target the **aws-dev** branch.
+* **No other users are allowed to review or approve pull requests.**
+* **Only @GTCrais and @CTLLaw** are authorized to create pull requests targeting the `staging` or `master` branches.
 
 **Merging Policy:**
 
-1. **aws-dev Branch:**
-   * This PR requires approval from either **@GTCrais** (for applications changes) or **@mbsimonovic** (for infrastructure changes). 
-   * Once approved, it can be merged into `aws-dev`.
+To maintain a controlled and secure deployment process, adhere to the following rules:
 
-2. **Staging Branch:**
-   * After successful testing on `aws-dev`, a separate PR should be created from `aws-dev` to `staging`.
-   * This PR requires approval from **@GTCrais**.
-   * Once approved, it can be merged into `staging`.
+1. **Target Branch:**
+   * All pull requests **must** initially target the `aws-dev` branch.  Any attempts to directly push to `master` or `staging` will be rejected.
+2. **Approval Requirements:**
+   * **aws-dev (Applications):** Requires approval from **@GTCrais**.
+   * **aws-dev (Infrastructure):** Requires approval from **@mbsimonovic**.
+   * **staging (Applications):** Requires approval from **@GTCrais**.
+   * **staging (Infrastructure):** Requires approval from **@mbsimonovic**.
+   * **master (production):** After thorough testing on `staging`, a final PR from `staging` to `master`, requires approval from **@CTLLaw**.
 
-3. **Production (master) Branch:**
-   * After thorough testing on `staging`, a final PR should be created from `staging` to `master`.
-   * This PR requires approval from **both** **@GTCrais** and **@CTLLaw**.
-   * Once approved, it can be merged into `master` for deployment to production.
+## Checklist for Contributors
+
+Please confirm the following before submitting this PR:
+
+- [ ] I have provided a detailed description of the changes and their purpose.
+- [ ] I have thoroughly tested the changes (including unit tests, if applicable).
+- [ ] I have not modified any existing migration files.
+- [ ] My code is clean and well-formatted (no unnecessary files, comments, or logging).
+- [ ] My function/method/property names are clear and descriptive.
+- [ ] This PR targets the correct branch:
+    - [ ] **aws-dev** for initial development and testing
+    - [ ] **staging** after successful testing on aws-dev
+    - [ ] **master** only after thorough testing on staging and with approval from @CTLLaw 

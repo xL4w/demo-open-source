@@ -1,39 +1,46 @@
 #!/bin/bash
+set -e  # Exit immediately if a command fails
 
-# Test Case 08: PR Creation by @CTLLaw (Reviewers Added)
+# ------------------------------------------------------------------------------
+# Test Case 08: PR Creation by @CTLLaw 
+#                (Reviewers should be @CTLLaw (creator) and @GTCrais)
+# ------------------------------------------------------------------------------
 
-# Set GitHub environment variables
-export GH_TOKEN="${{ secrets.GH_TOKEN }}" # Use the repository's secret token for authentication
-export GITHUB_REPOSITORY="${{ github.repository }}" # Get the repository name from GitHub context
-export PR_CREATOR="CTLLaw"                       # Set the PR creator as @CTLLaw
-export EXPECTED_REVIEWERS="GTCrais,CTLLaw" # The reviewers we expect to see
+# 1. Environment Setup
+# --------------------
+source ./common_functions.sh   # Source common functions
 
-# Source the workflow file
-source ../enforce-branch-sequence.yml
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
+
+# Repository information from GitHub context
+GITHUB_REPOSITORY="${{ github.repository }}"
+
+# User who is creating the PR
+PR_CREATOR="CTLLaw"
+
+# Set PR body to indicate it's an application change (adjust for infrastructure if needed)
+export PR_BODY="This PR is related to Applications changes."                       
+
+# List of expected reviewers for this type of PR
+EXPECTED_REVIEWERS="CTLLaw,GTCrais"  # Adjusted for creator and required reviewer 
 
 
-# Helper function to create a pull request via the GitHub API (Same as in 07-pr-creation-gtcrais.sh)
-create_pull_request() {
-  # ... (copy the function from 07-pr-creation-gtcrais.sh)
-}
+# 3. Test Execution
+# -----------------
 
-# Helper function to get reviewers for a pull request (Same as in 07-pr-creation-gtcrais.sh)
-get_pull_request_reviewers() {
-  # ... (copy the function from 07-pr-creation-gtcrais.sh)
-}
-
-# Create a pull request (choose appropriate branches based on your test)
-pr_url=$(create_pull_request "aws-dev" "feature/new-feature-by-ctllaw")  # Modify base/head as needed
+# Create a new PR from a feature branch to aws-dev
+pr_url=$(create_pull_request "aws-dev" "feature/new-feature-by-ctllaw" "Test PR by $PR_CREATOR")
 echo "Created PR: $pr_url"
 
-# Get the reviewers assigned to the created pull request
+# Retrieve the reviewers for the new PR
 assigned_reviewers=$(get_pull_request_reviewers "$pr_url")
 echo "Assigned reviewers: $assigned_reviewers"
 
-# Verify if the expected reviewers are present
+# Verify that the expected reviewers are assigned
 if [[ "$assigned_reviewers" == "$EXPECTED_REVIEWERS" ]]; then
   echo "✅ PASS: Correct reviewers (@GTCrais and @CTLLaw) were added to the PR."
 else
   echo "❌ FAIL: Incorrect reviewers were added. Expected: $EXPECTED_REVIEWERS, Actual: $assigned_reviewers"
-  exit 1
+  exit 1  # Indicate failure to GitHub Actions
 fi

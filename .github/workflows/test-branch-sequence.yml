@@ -1,12 +1,18 @@
-name: Test Branch Sequence and Permissions
+name: Branch Sequence & Permissions
 
 on:
   push:
     branches:
       - main
+      - master
+      - aws-dev
+      - staging
   pull_request:
     branches:
       - main
+      - master
+      - aws-dev
+      - staging
   pull_request_review:
   pull_request_target:
 
@@ -14,114 +20,102 @@ permissions:
   contents: read
 
 jobs:
-
   clear-cache:
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
-        with:
-          egress-policy: audit
-
       - name: Clear Cache
-        uses: actions/cache@8492260343ad570701412c2f464a5877dc76bace # v2
+        uses: actions/cache@v2
         with:
           path: |
             ./.github/workflows/
           key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-workflow-${{ github.event_name }}-
-
   
   test-branch-sequence:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        uses: step-security/harden-runner@v2.8.0
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@v3.6.0
 
-      - name: Verify working directory
-        run: pwd
-
-      - name: List root directory
-        run: ls -la 
-
-      - name: List workflows directory
-        run: ls -la ./.github/workflows
-
-      - name: List scripts directory
-        run: ls -la ./.github/workflows/scripts
-
-      - name: Check if test script exists
-        run: test -f ./.github/workflows/scripts/enforce-branch-sequence-test.sh && echo "File exists" || echo "File does not exist"        
-
-      - name: Make tests scripts executable
-        run: |
-          chmod +x ./.github/workflows/scripts/enforce-branch-sequence-test.sh
-          chmod +x ./.github/workflows/scripts/01-direct-push-master.sh
-          chmod +x ./.github/workflows/scripts/02-direct-push-staging.sh
-          chmod +x ./.github/workflows/scripts/03-direct-push-aws-dev.sh
-          chmod +x ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh    
-          chmod +x ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh          
-          chmod +x ./.github/workflows/scripts/06-pr-staging-to-master.sh    
-          chmod +x ./.github/workflows/scripts/07-pr-creation-gtcrais.sh 
-          chmod +x ./.github/workflows/scripts/08-pr-creation-ctllaw.sh
-          chmod +x ./.github/workflows/scripts/09-add-invalid-reviewer.sh
-          chmod +x ./.github/workflows/scripts/10-approval-merge-permissions.sh
+      - name: Install tree
+        run: sudo apt-get install -y tree        
 
       - name: Run Branch Sequence Tests
         run: |
-          ./.github/workflows/scripts/enforce-branch-sequence-test.sh || echo "Branch sequence tests failed."
+          if [ ! -d "./.github/workflows/scripts" ]; then
+            echo "Error: Scripts directory not found."
+            exit 1
+          fi
+
+          all_tests_passed=true
+          for script in \
+            ./.github/workflows/scripts/01-direct-push-master.sh \
+            ./.github/workflows/scripts/02-direct-push-staging.sh \
+            ./.github/workflows/scripts/03-direct-push-aws-dev.sh \
+            ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh \
+            ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh \
+            ./.github/workflows/scripts/06-pr-staging-to-master.sh; do 
+              echo "Running: $script"
+              if ! bash "$script"; then
+                echo "Error: $script failed. Check the script output for details."
+                all_tests_passed=false  
+              else
+                echo "Success: $script passed." 
+              fi
+          done
+
+          if [ "$all_tests_passed" = false ]; then
+            exit 1
+          fi
 
   test-reviewer-permissions:
     runs-on: ubuntu-latest
     env:  
-      PR_CREATOR: automation-bot # Use the same user for all PR creation tests
-      INVALID_REVIEWER: "4k4xs4pH1r3-2"  # Replace with an invalid reviewer name
+      PR_CREATOR: automation-bot
+      INVALID_REVIEWER: "4k4xs4pH1r3-2"  
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        uses: step-security/harden-runner@v2.8.0 
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@v3.6.0 
 
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      - name: Verify working directory
-        run: pwd
-
-      - name: List root directory
-        run: ls -la 
-
-      - name: List workflows directory
-        run: ls -la ./.github/workflows
-
-      - name: List scripts directory
-        run: ls -la ./.github/workflows/scripts
-
-      - name: Make all scripts executable
-        run: chmod +x ./.github/workflows/scripts/*.sh
-
       - name: Run Test Cases
         run: |
-          set -e  # Enable exit on error
-          if ! ./.github/workflows/scripts/01-direct-push-master.sh &&
-             ! ./.github/workflows/scripts/02-direct-push-staging.sh &&
-             ! ./.github/workflows/scripts/03-direct-push-aws-dev.sh &&
-             ! ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh &&
-             ! ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh &&
-             ! ./.github/workflows/scripts/06-pr-staging-to-master.sh &&
-             ! ./.github/workflows/scripts/07-pr-creation-gtcrais.sh &&
-             ! ./.github/workflows/scripts/08-pr-creation-ctllaw.sh &&
-             ! ./.github/workflows/scripts/09-add-invalid-reviewer.sh &&
-             ! ./.github/workflows/scripts/10-approval-merge-permissions.sh; then
-            echo "One or more test cases failed."
+          if [ ! -d "./.github/workflows/scripts" ]; then
+            echo "Error: Scripts directory not found."
+            exit 1  
+          fi
+
+          set -e  
+
+          all_tests_passed=true 
+          for script in \
+            ./.github/workflows/scripts/07-pr-creation-gtcrais.sh \
+            ./.github/workflows/scripts/08-pr-creation-ctllaw.sh \
+            ./.github/workflows/scripts/09-add-invalid-reviewer.sh \
+            ./.github/workflows/scripts/10-approval-merge-permissions.sh; do
+              echo "Running: $script"
+              if ! bash "$script"; then
+                echo "Error: $script failed. Check the script output for details."
+                all_tests_passed=false  
+              else
+                echo "Success: $script passed." 
+              fi
+          done
+
+          if [ "$all_tests_passed" = false ]; then
+            exit 1
           fi
