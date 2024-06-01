@@ -21,7 +21,7 @@ tree .github
 
 # 1. Environment Setup
 # --------------------
-source ./common_functions.sh   # Source common helper functions
+source ./.github/workflows/scripts/common_functions.sh   # Source common helper functions
 
 # 2. Helper Function to Mock GitHub Context
 # ------------------------------------------
