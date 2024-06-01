@@ -1,0 +1,53 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# A sample workflow that checks out your Infrastructure as Code Configuration files,
+# such as Kubernetes, Helm & Terraform, and scans them for any security issues.
+# The results are then uploaded to GitHub Security Code Scanning
+#
+# For more examples, including how to limit scans to only high-severity issues
+# and fail PR checks, see https://github.com/snyk/actions/
+
+name: Snyk Infrastructure as Code Scan
+
+on:
+  pull_request:
+    branches: ['*']  # Run on every PR on any branch
+
+permissions:
+  contents: read
+
+jobs:
+  test-snyk:
+    runs-on: ubuntu-latest
+    permissions: 
+      contents: read
+      actions: read
+      security-events: write 
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
+      - name: Manual Checkout
+        run: |
+          git clone 'https://${{ secrets.GH_TOKEN }}@github.com/Nucleus-Flow-Testing/demo-repository.git'
+          cd demo-repository 
+
+      - name: Snyk Scan
+        uses: snyk/actions@b98d498629f1c368650224d6d212bf7dfa89e4bf # 0.4.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test --sarif-file-output=snyk.sarif 
+          args: --all-projects # --severity-threshold=high 
+          
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@9fdb3e49720b44c48891d036bb502feb25684276 # v3.25.6
+        with:
+          sarif_file: snyk.sarif
+          checkout_path: '.' 
+          token: ${{ secrets.GH_TOKEN }}

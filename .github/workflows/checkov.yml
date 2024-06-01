@@ -1,0 +1,39 @@
+name: Checkov Security Scan
+
+on:
+  push:
+    branches:
+      - main  # Adjust the branch if needed
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  checkov_scan:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      security-events: write  # for github/codeql-action/upload-sarif to upload SARIF results
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - name: Checkov Scan
+        uses: bridgecrewio/checkov-action@cbef505ba3282486a24541d7c862e19266ad0d96 # v12.2762.0
+        with:
+          directory: '.'                    # Root directory to scan (adjust if needed)
+          output_format: 'cli'             # Output format (cli, json, junit_xml, sarif)
+          # Add other Checkov configuration options here if necessary (see below)
+
+      - name: Upload SARIF file (optional)
+        if: always()  # Always run this step, even if previous steps fail
+        uses: github/codeql-action/upload-sarif@162eb1e32abe518e88bd229ebc8784a533ceaa51 # v2.25.6
+        with:
+          sarif_file: 'results.sarif'     # SARIF output file name (adjust if needed)

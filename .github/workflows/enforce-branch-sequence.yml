@@ -1,0 +1,66 @@
+# This file is a set of instructions for a computer program called GitHub Actions.
+# GitHub Actions helps automate tasks related to your software project on GitHub.
+
+# This file is used to run tests on your project.
+# This specific set of instructions is named "Enforce Branch Sequence"
+name: Enforce Branch Sequence
+
+# These instructions are triggered (activated) whenever someone:
+#   - Opens a new pull request
+#   - Updates an existing pull request (sync)
+#   - Reopens a closed pull request
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# This is the main part of the instructions, where the actual work happens.
+permissions:
+  contents: read
+
+jobs:
+  # This is a single task within the instructions.
+  enforce-branch-sequence:
+    # This task will run on a virtual computer provided by GitHub.
+    runs-on: ubuntu-latest 
+    # These are the step-by-step actions within the task.
+    steps:
+      # This step is named "Check PR branch sequence"
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
+      - name: Check PR branch sequence
+        id: check-branch-sequence
+        # This is the code that the computer will run:
+        run: |
+          # This line creates a list of allowed ways to move code between branches.
+          allowed_sequences=(
+            "Any branch --> aws-dev" 
+            "aws-dev --> staging"     
+            "staging --> master"      
+          )
+
+          # These lines get the names of the branches involved in the pull request.
+          base_ref="${{ github.base_ref }}"  
+          head_ref="${{ github.head_ref }}"  
+
+          # This section checks if the pull request follows the allowed rules.
+          if [[ "$base_ref" == "master" && "$head_ref" != "staging" ]] || \
+             [[ "$base_ref" == "staging" && "$head_ref" != "aws-dev" ]]; then
+
+            # If the pull request breaks the rules, this message is shown.
+            echo "Error: This PR violates the required branch sequence."
+            echo "Allowed sequences are:"
+
+            # This loop prints each of the allowed sequences.
+            for seq in "${allowed_sequences[@]}"; do
+              echo "- $seq"
+            done
+            # This line stops the pull request from moving forward.
+            exit 1 
+          else
+            # If the pull request follows the rules, this message is shown.
+            echo "Success: The branch sequence is valid."
+          fi
+        shell: bash
