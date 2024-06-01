@@ -23,7 +23,7 @@ jobs:
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
 
       - name: Checkov Scan
         uses: bridgecrewio/checkov-action@cbef505ba3282486a24541d7c862e19266ad0d96 # v12.2762.0
@@ -34,6 +34,6 @@ jobs:
 
       - name: Upload SARIF file (optional)
         if: always()  # Always run this step, even if previous steps fail
-        uses: github/codeql-action/upload-sarif@162eb1e32abe518e88bd229ebc8784a533ceaa51 # v2.25.6
+        uses: github/codeql-action/upload-sarif@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
         with:
           sarif_file: 'results.sarif'     # SARIF output file name (adjust if needed)
