@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull_requests: write
 
 jobs:
   auto-assign-creator:  # Job to assign the PR creator
@@ -24,12 +24,12 @@ jobs:
           script: |
             const pull_number = context.payload.pull_request.number;
             const creator = context.payload.pull_request.user.login;
-
+            
             github.rest.issues.addAssignees({
-                issue_number: pull_number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                assignees: [creator]
+              issue_number: pull_number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              assignees: [creator]
             });
 
   auto-assign-reviewers:  # Job to assign reviewers based on PR type
@@ -39,7 +39,8 @@ jobs:
         uses: step-security/harden-runner@v2.8.0
         with:
           egress-policy: audit
-      - name: Checkout Code
+
+      - name: Checkout Code  # This step is unnecessary for reviewer assignment
         uses: actions/checkout@v3.6.0
 
       - name: Auto Assign Reviewers
@@ -48,15 +49,15 @@ jobs:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
             const pull_number = context.payload.pull_request.number;
-            const body = context.payload.pull_request.body;
+            const body = context.payload.pull_request.body || ""; // Default to empty string if null
             const baseRef = context.payload.pull_request.base.ref;
             const assignees = [];
 
-            // Check for PR type (Application or Infrastructure)
-            const isApplicationPR = body.includes("Applications");
-            const isInfrastructurePR = body.includes("Infrastructure");
+            // Check for PR type (case-insensitive)
+            const isApplicationPR = body.toLowerCase().includes("applications");
+            const isInfrastructurePR = body.toLowerCase().includes("infrastructure");
 
-            // Assign reviewers based on PR type and target branch
+            // Assign reviewers
             if (isApplicationPR) {
               assignees.push("GTCrais");
             }
@@ -69,7 +70,6 @@ jobs:
               assignees.push("CTLLaw"); 
             }
 
-            // Assign the reviewers
             if (assignees.length > 0) {
               github.rest.issues.addAssignees({
                 issue_number: pull_number,
@@ -78,4 +78,3 @@ jobs:
                 assignees: assignees,
               });
             }
-
