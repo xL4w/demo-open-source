@@ -46,32 +46,63 @@ jobs:
       - name: Install tree 
         run: sudo apt-get install -y tree
 
-      - name: Check Script Directory
-        run: |
-          pwd  
-          cd .github/workflows/scripts  
-          pwd                         
-          ls -la                        
-          if [ ! -r "./01-direct-push-master.sh" ]; then  
-            echo "Error: Scripts are not readable."
-            exit 1
-          fi
+      - name: Verify working directory
+        run: pwd
 
-      - name: Make scripts executable
-        run: chmod +x *.sh 
+      - name: List root directory
+        run: ls -la 
+
+      - name: List workflows directory
+        run: ls -la ./.github/workflows
+
+      - name: List scripts directory
+        run: ls -la ./.github/workflows/scripts
+
+      - name: Check if test script exists
+        run: test -f ./.github/workflows/scripts/enforce-branch-sequence-test.sh && echo "File exists" || echo "File does not exist"                      
+
+      - name: Make tests scripts executable
+        run: |
+          chmod +x ./.github/workflows/scripts/enforce-branch-sequence-test.sh
+          chmod +x ./.github/workflows/scripts/common_functions.sh
+          chmod +x ./.github/workflows/scripts/01-direct-push-master.sh
+          chmod +x ./.github/workflows/scripts/02-direct-push-staging.sh
+          chmod +x ./.github/workflows/scripts/03-direct-push-aws-dev.sh
+          chmod +x ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh    
+          chmod +x ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh          
+          chmod +x ./.github/workflows/scripts/06-pr-staging-to-master.sh    
+          chmod +x ./.github/workflows/scripts/07-pr-creation-gtcrais.sh 
+          chmod +x ./.github/workflows/scripts/08-pr-creation-ctllaw.sh
+          chmod +x ./.github/workflows/scripts/09-add-invalid-reviewer.sh
+          chmod +x ./.github/workflows/scripts/10-approval-merge-permissions.sh
 
       - name: Run Branch Sequence Tests
         run: |
-          for i in {1..10}; do  
-            script="0${i}-*.sh" 
+          failed_scripts=() # Initialize an array to store failed scripts
+          for i in {1..6}; do  
+            script="0${i}-*.sh"
             if [ -f "$script" ]; then
               echo "Running: $script"
               ENFORCE_BRANCH_SEQUENCE_FILE="$GITHUB_WORKSPACE/.github/workflows/enforce-branch-sequence.yml" 
-              bash "$script" "$ENFORCE_BRANCH_SEQUENCE_FILE" || exit 1 
+              if ! bash "$script" "$ENFORCE_BRANCH_SEQUENCE_FILE"; then  
+                echo "Error: $script failed. Check the script output for details."
+                failed_scripts+=("$script")  # Add the failed script to the array
+              else
+                echo "Success: $script passed."  
+              fi
             else
               echo "Skipping: $script not found."  
             fi
           done
+
+          # Report failures at the end (if any)
+          if [ "${#failed_scripts[@]}" -gt 0 ]; then
+            echo "Errors found in the following scripts:"
+            for failed_script in "${failed_scripts[@]}"; do
+              echo "- $failed_script"
+            done
+            exit 1 # Exit with failure status
+          fi
 
   test-reviewer-permissions:   
     runs-on: ubuntu-latest
@@ -92,26 +123,41 @@ jobs:
       - name: Check Script Directory
         run: |
           pwd  
-          cd .github/workflows/scripts 
+          cd ./.github/workflows/scripts  
           pwd                         
-          ls -la                        
-          if [ ! -r "./07-pr-creation-gtcrais.sh" ]; then 
-            echo "Error: Scripts are not readable."
-            exit 1
-          fi
+          ls -la                       
 
       - name: Make scripts executable
-        run: chmod +x *.sh
+        run: |
+          chmod +x 07-pr-creation-gtcrais.sh
+          chmod +x 08-pr-creation-ctllaw.sh
+          chmod +x 09-add-invalid-reviewer.sh
+          chmod +x 10-approval-merge-permissions.sh
 
       - name: Run Test Cases
         run: |
-          for i in {7..10}; do  # Notice the start index is 7 for this job
+          failed_scripts=() 
+          for i in {7..10}; do  
             script="0${i}-*.sh" 
             if [ -f "$script" ]; then
               echo "Running: $script"
               ENFORCE_BRANCH_SEQUENCE_FILE="$GITHUB_WORKSPACE/.github/workflows/enforce-branch-sequence.yml" 
-              bash "$script" "$ENFORCE_BRANCH_SEQUENCE_FILE" || exit 1 
+              if ! bash "$script" "$ENFORCE_BRANCH_SEQUENCE_FILE"; then  
+                echo "Error: $script failed. Check the script output for details."
+                failed_scripts+=("$script") 
+              else
+                echo "Success: $script passed."  
+              fi
             else
               echo "Skipping: $script not found."  
             fi
           done
+
+          # Report failures at the end (if any)
+          if [ "${#failed_scripts[@]}" -gt 0 ]; then
+            echo "Errors found in the following scripts:"
+            for failed_script in "${failed_scripts[@]}"; do
+              echo "- $failed_script"
+            done
+            exit 1 # Exit with failure status
+          fi
