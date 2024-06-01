@@ -1,4 +1,4 @@
-name: Branch Sequence & Permissions
+name: Branch Sequence & Permissions Testing
 
 on:
   push:
@@ -17,10 +17,10 @@ on:
   pull_request_target:
 
 permissions:
-  contents: read
+  contents: read  
 
 jobs:
-  clear-cache:
+  clear-cache:   
     runs-on: ubuntu-latest
     steps:
       - name: Clear Cache
@@ -31,8 +31,8 @@ jobs:
           key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-workflow-${{ github.event_name }}-
-  
-  test-branch-sequence:
+
+  test-branch-sequence:    
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
@@ -41,43 +41,42 @@ jobs:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@v3.6.0
+        uses: actions/checkout@v3.6.0  
 
-      - name: Install tree
-        run: sudo apt-get install -y tree        
+      - name: Install tree 
+        run: sudo apt-get install -y tree
+
+      - name: Check Script Directory
+        run: |
+          pwd  
+          cd .github/workflows/scripts  
+          pwd                         
+          ls -la                        
+          if [ ! -r "./01-direct-push-master.sh" ]; then  
+            echo "Error: Scripts are not readable."
+            exit 1
+          fi
+
+      - name: Make scripts executable
+        run: chmod +x *.sh 
 
       - name: Run Branch Sequence Tests
         run: |
-          if [ ! -d "./.github/workflows/scripts" ]; then
-            echo "Error: Scripts directory not found."
-            exit 1
-          fi
-
-          all_tests_passed=true
-          for script in \
-            ./.github/workflows/scripts/01-direct-push-master.sh \
-            ./.github/workflows/scripts/02-direct-push-staging.sh \
-            ./.github/workflows/scripts/03-direct-push-aws-dev.sh \
-            ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh \
-            ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh \
-            ./.github/workflows/scripts/06-pr-staging-to-master.sh; do 
+          for i in {1..10}; do  
+            script="0${i}-*.sh" 
+            if [ -f "$script" ]; then
               echo "Running: $script"
-              if ! bash "$script"; then
-                echo "Error: $script failed. Check the script output for details."
-                all_tests_passed=false  
-              else
-                echo "Success: $script passed." 
-              fi
+              ENFORCE_BRANCH_SEQUENCE_FILE="$GITHUB_WORKSPACE/.github/workflows/enforce-branch-sequence.yml" 
+              bash "$script" "$ENFORCE_BRANCH_SEQUENCE_FILE" || exit 1 
+            else
+              echo "Skipping: $script not found."  
+            fi
           done
 
-          if [ "$all_tests_passed" = false ]; then
-            exit 1
-          fi
-
-  test-reviewer-permissions:
+  test-reviewer-permissions:   
     runs-on: ubuntu-latest
     env:  
-      PR_CREATOR: automation-bot
+      PR_CREATOR: automation-bot      
       INVALID_REVIEWER: "4k4xs4pH1r3-2"  
 
     steps:
@@ -85,37 +84,34 @@ jobs:
         uses: step-security/harden-runner@v2.8.0 
         with:
           egress-policy: audit
-
       - name: Checkout Code
         uses: actions/checkout@v3.6.0 
-
-      - name: Install jq
+      - name: Install jq 
         run: sudo apt-get install -y jq
+
+      - name: Check Script Directory
+        run: |
+          pwd  
+          cd .github/workflows/scripts 
+          pwd                         
+          ls -la                        
+          if [ ! -r "./07-pr-creation-gtcrais.sh" ]; then 
+            echo "Error: Scripts are not readable."
+            exit 1
+          fi
+
+      - name: Make scripts executable
+        run: chmod +x *.sh
 
       - name: Run Test Cases
         run: |
-          if [ ! -d "./.github/workflows/scripts" ]; then
-            echo "Error: Scripts directory not found."
-            exit 1  
-          fi
-
-          set -e  
-
-          all_tests_passed=true 
-          for script in \
-            ./.github/workflows/scripts/07-pr-creation-gtcrais.sh \
-            ./.github/workflows/scripts/08-pr-creation-ctllaw.sh \
-            ./.github/workflows/scripts/09-add-invalid-reviewer.sh \
-            ./.github/workflows/scripts/10-approval-merge-permissions.sh; do
+          for i in {7..10}; do  # Notice the start index is 7 for this job
+            script="0${i}-*.sh" 
+            if [ -f "$script" ]; then
               echo "Running: $script"
-              if ! bash "$script"; then
-                echo "Error: $script failed. Check the script output for details."
-                all_tests_passed=false  
-              else
-                echo "Success: $script passed." 
-              fi
+              ENFORCE_BRANCH_SEQUENCE_FILE="$GITHUB_WORKSPACE/.github/workflows/enforce-branch-sequence.yml" 
+              bash "$script" "$ENFORCE_BRANCH_SEQUENCE_FILE" || exit 1 
+            else
+              echo "Skipping: $script not found."  
+            fi
           done
-
-          if [ "$all_tests_passed" = false ]; then
-            exit 1
-          fi

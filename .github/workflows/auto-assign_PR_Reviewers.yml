@@ -20,7 +20,7 @@ jobs:
       - name: Auto Assign Reviewers
         uses: actions/github-script@v6.4.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_TOKEN }}
           script: |
             const pull_number = context.payload.pull_request.number;
             const body = context.payload.pull_request.body || ""; 

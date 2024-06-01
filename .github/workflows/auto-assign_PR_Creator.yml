@@ -4,12 +4,12 @@ on:
   pull_request:
     types: [opened]
 
-permissions:  
+permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  auto-assign-creator:  # Job to assign the PR creator
+  assign-creator:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
@@ -20,14 +20,22 @@ jobs:
       - name: Assign PR Creator
         uses: actions/github-script@v6.4.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_TOKEN }}
           script: |
-            const pull_number = context.payload.pull_request.number;
+            const pull_number = context.issue.number;
             const creator = context.payload.pull_request.user.login;
 
             github.rest.issues.addAssignees({
-                issue_number: pull_number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                assignees: [creator]
+              issue_number: pull_number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              assignees: [creator]
             });
+
+            github.rest.issues.createComment({
+              issue_number: pull_number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `@${creator} you have been automatically assigned to this pull request. Feel free to add or remove assignees as needed.` 
+            });
+

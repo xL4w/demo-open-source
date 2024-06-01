@@ -34,7 +34,7 @@ jobs:
 
       - name: Manual Checkout
         run: |
-          git clone 'https://${{ secrets.GH_TOKEN }}@github.com/Nucleus-Flow-Testing/demo-repository.git'
+          git clone 'https://${{ secrets.GH_TOKEN }}@github.com/CTLLAW-Org/demo-open-source.git
           cd demo-repository 
 
       - name: Snyk Scan
