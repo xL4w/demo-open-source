@@ -1,0 +1,16 @@
+name: Proof HTML
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
+      - uses: anishathalye/proof-html@47a787591515a207d6fc8ef13e016ac42cb877c8 # v1.1.0
+        with:
+          directory: ./
