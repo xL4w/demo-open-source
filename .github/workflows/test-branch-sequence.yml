@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clear Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ./.github/workflows/
