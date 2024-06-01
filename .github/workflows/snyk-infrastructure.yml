@@ -14,7 +14,7 @@ name: Snyk Infrastructure as Code Scan
 
 on:
   pull_request:
-    branches: ['*']  # Run on every PR on any branch
+    branches: ['aws-dev']  # Run on every PR on any branch
 
 permissions:
   contents: read

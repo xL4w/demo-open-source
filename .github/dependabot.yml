@@ -8,7 +8,7 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: ".github/workflows"
-    target-branch: "dev"
+    target-branch: "aws-dev"
     schedule:
       interval: "weekly"
     reviewers:
@@ -18,7 +18,7 @@ updates:
       - "actions"
   - package-ecosystem: "composer"
     directory: "/"
-    target-branch: "dev"
+    target-branch: "aws-dev"
     schedule:
       interval: "weekly"
     reviewers:
@@ -28,7 +28,7 @@ updates:
       - "php"
   - package-ecosystem: "npm"
     directory: "/"
-    target-branch: "dev"
+    target-branch: "aws-dev"
     schedule:
       interval: "weekly"
     reviewers:
@@ -38,7 +38,7 @@ updates:
       - "javascript"
   - package-ecosystem: "mix"
     directory: "/resources/views"
-    target-branch: "dev"
+    target-branch: "aws-dev"
     schedule:
       interval: "weekly"
     reviewers:
@@ -48,7 +48,7 @@ updates:
       - "templates"
   - package-ecosystem: "mix"
     directory: "/"
-    target-branch: "dev"
+    target-branch: "aws-dev"
     schedule:
       interval: "weekly"
     reviewers:

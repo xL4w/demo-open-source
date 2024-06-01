@@ -1,4 +1,4 @@
-name: Auto Assign PR Creator
+name: Auto Assign PR Creator and Reviewers
 
 on:
   pull_request:
@@ -6,20 +6,19 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
-  auto-assign:
+  auto-assign-creator:  # Job to assign the PR creator
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        uses: step-security/harden-runner@v2.8.0
         with:
           egress-policy: audit
 
       - name: Assign PR Creator
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@v6.4.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
@@ -32,3 +31,51 @@ jobs:
                 repo: context.repo.repo,
                 assignees: [creator]
             });
+
+  auto-assign-reviewers:  # Job to assign reviewers based on PR type
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.8.0
+        with:
+          egress-policy: audit
+      - name: Checkout Code
+        uses: actions/checkout@v3.6.0
+
+      - name: Auto Assign Reviewers
+        uses: actions/github-script@v6.4.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pull_number = context.payload.pull_request.number;
+            const body = context.payload.pull_request.body;
+            const baseRef = context.payload.pull_request.base.ref;
+            const assignees = [];
+
+            // Check for PR type (Application or Infrastructure)
+            const isApplicationPR = body.includes("Applications");
+            const isInfrastructurePR = body.includes("Infrastructure");
+
+            // Assign reviewers based on PR type and target branch
+            if (isApplicationPR) {
+              assignees.push("GTCrais");
+            }
+
+            if (isInfrastructurePR) {
+              assignees.push("mbsimonovic");
+            }
+
+            if (baseRef === "master") {
+              assignees.push("CTLLaw"); 
+            }
+
+            // Assign the reviewers
+            if (assignees.length > 0) {
+              github.rest.issues.addAssignees({
+                issue_number: pull_number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                assignees: assignees,
+              });
+            }
+
