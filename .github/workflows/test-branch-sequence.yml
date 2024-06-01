@@ -120,19 +120,29 @@ jobs:
       - name: Install jq 
         run: sudo apt-get install -y jq
 
-      - name: Check Script Directory
-        run: |
-          pwd  
-          cd ./.github/workflows/scripts  
-          pwd                         
-          ls -la                       
+      - name: Verify working directory
+        run: pwd
 
-      - name: Make scripts executable
+      - name: List root directory
+        run: ls -la 
+
+      - name: List workflows directory
+        run: ls -la ./.github/workflows
+
+      - name: List scripts directory
+        run: ls -la ./.github/workflows/scripts
+
+      - name: Check if test script exists
+        run: test -f ./.github/workflows/scripts/enforce-branch-sequence-test.sh && echo "File exists" || echo "File does not exist"                      
+
+      - name: Make tests scripts executable
         run: |
-          chmod +x 07-pr-creation-gtcrais.sh
-          chmod +x 08-pr-creation-ctllaw.sh
-          chmod +x 09-add-invalid-reviewer.sh
-          chmod +x 10-approval-merge-permissions.sh
+          chmod +x ./.github/workflows/scripts/enforce-branch-sequence-test.sh
+          chmod +x ./.github/workflows/scripts/common_functions.sh                      
+          chmod +x ./.github/workflows/scripts/07-pr-creation-gtcrais.sh
+          chmod +x ./.github/workflows/scripts/08-pr-creation-ctllaw.sh
+          chmod +x ./.github/workflows/scripts/09-add-invalid-reviewer.sh
+          chmod +x ./.github/workflows/scripts/10-approval-merge-permissions.sh
 
       - name: Run Test Cases
         run: |
