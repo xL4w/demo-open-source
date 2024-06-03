@@ -18,6 +18,15 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2
+        with:
+         path: |
+           ./.github/workflows/
+         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+         restore-keys: |
+           ${{ runner.os }}-workflow-${{ github.event_name }}-                
+
       - name: Checkout code
         uses: actions/checkout@v4.1.6
       - name: Run test script
