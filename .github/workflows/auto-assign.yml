@@ -2,7 +2,12 @@ name: Auto Assign PR Creator and Reviewers
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened, ready_for_review]
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/auto-assign.yml'
+      - '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
 
 permissions:
   contents: read
@@ -18,7 +23,7 @@ jobs:
           egress-policy: audit
 
       - name: Get Pull Request Template
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.6
         with:
           path: .github/PULL_REQUEST_TEMPLATE
           ref: ${{ github.event.pull_request.head.sha }}
@@ -80,12 +85,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0 # Updated to latest version
+        uses: step-security/harden-runner@v2.8.0
         with:
           egress-policy: audit
 
       - name: Assign PR Creator
-        uses: actions/github-script@v7.0.1  # Updated to latest version
+        uses: actions/github-script@v7.0.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
