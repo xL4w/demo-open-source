@@ -5,7 +5,7 @@ set -e  # Exit immediately if a command fails
 # Test Case 01: Direct Push to Master Branch (Not Allowed)
 
 # Source common helper functions
-source ./common_functions.sh
+source ./.github/workflows/scripts/common_functions.sh
 
 # Mock GitHub environment variables for a direct push to master
 export GITHUB_REF=refs/heads/master

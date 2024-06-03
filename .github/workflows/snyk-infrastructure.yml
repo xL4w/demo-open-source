@@ -14,7 +14,7 @@ name: Snyk Infrastructure as Code Scan
 
 on:
   pull_request:
-    branches: ['aws-dev']  # Run on every PR on any branch
+    branches: ['aws-dev']
 
 permissions:
   contents: read
@@ -28,13 +28,13 @@ jobs:
       security-events: write 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        uses: step-security/harden-runner@v2.8.0
         with:
           egress-policy: audit
 
       - name: Manual Checkout
         run: |
-          git clone 'https://${{ secrets.GH_TOKEN }}@github.com/Nucleus-Flow-Testing/demo-repository.git'
+          git clone 'https://${{ secrets.GH_TOKEN }}@github.com/CTLLAW-Org/demo-open-source.git
           cd demo-repository 
 
       - name: Snyk Scan
@@ -46,7 +46,7 @@ jobs:
           args: --all-projects # --severity-threshold=high 
           
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
+        uses: github/codeql-action/upload-sarif@v3.25.6
         with:
           sarif_file: snyk.sarif
           checkout_path: '.' 

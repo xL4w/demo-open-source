@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./common_functions.sh
+source ./.github/workflows/scripts/common_functions.sh
 
 set -e  # Exit immediately if a command fails
 
@@ -10,7 +10,7 @@ set -e  # Exit immediately if a command fails
 
 # 1. Environment Setup
 # --------------------
-source ./common_functions.sh   # Source common functions
+source ./.github/workflows/scripts/common_functions.sh   # Source common functions
 
 # GitHub credentials
 GH_TOKEN="${{ secrets.GH_TOKEN }}" 

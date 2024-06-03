@@ -1,0 +1,84 @@
+name: Test Workflows
+
+on:
+  push:
+    branches:
+      - test-workflows
+
+jobs:
+  test-direct-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [master, staging, aws-dev]
+        scriptPath: ["01-direct-push-master.sh", "02-direct-push-staging.sh", "03-direct-push-aws-dev.sh"]
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.8.0
+        with:
+          egress-policy: audit
+
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2
+        with:
+         path: |
+           ./.github/workflows/
+         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+         restore-keys: |
+           ${{ runner.os }}-workflow-${{ github.event_name }}-                
+
+      - name: Checkout code
+        uses: actions/checkout@v4.1.6
+      - name: Run test script
+        run: |
+          chmod +x scripts/${{ matrix.scriptPath }}
+          ./scripts/${{ matrix.scriptPath }} ${{ matrix.branch }}
+
+  test-pr-sequence:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        case: [
+          { source: 'test-branch', target: 'aws-dev', script: '04-pr-any-to-aws-dev.sh' },
+          { source: 'aws-dev', target: 'staging', script: '05-pr-aws-dev-to-staging.sh' },
+          { source: 'staging', target: 'master', script: '06-pr-staging-to-master.sh' },
+        ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.6
+      - name: Run test script
+        run: |
+          chmod +x scripts/${{ matrix.case.script }}
+          ./scripts/${{ matrix.case.script }} ${{ matrix.case.source }} ${{ matrix.case.target }}
+
+  test-user-permissions:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        case: [
+          { user: 'GTCrais', script: '07-pr-creation-gtcrais.sh' },
+          { user: 'CTLLaw', script: '08-pr-creation-ctllaw.sh' },
+          { user: 'mbsimonovic', script: '07-pr-creation-gtcrais.sh' }, # Same script as GTCrais for testing purpose
+          { user: 'mbsimonovic', script: '08-pr-creation-ctllaw.sh' }, # Same script as CTLLaw for testing purpose
+        ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.6
+      - name: Run test script
+        run: |
+          chmod +x scripts/${{ matrix.case.script }}
+          ./scripts/${{ matrix.case.script }} ${{ matrix.case.user }}
+
+  test-reviewer-permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.6
+      - name: Run test script for adding invalid reviewers
+        run: |
+          chmod +x scripts/09-add-invalid-reviewer.sh
+          ./scripts/09-add-invalid-reviewer.sh
+      - name: Run test script for approval and merge permissions
+        run: |
+          chmod +x scripts/10-approval-merge-permissions.sh
+          ./scripts/10-approval-merge-permissions.sh

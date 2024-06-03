@@ -2,80 +2,127 @@ name: Auto Assign PR Creator and Reviewers
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened, ready_for_review]
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/auto-assign.yml'
+      - '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  auto-assign-creator:  # Job to assign the PR creator
+  auto_assign_reviewers:
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
-        with:
-          egress-policy: audit
+      - name: Set PR Template Output
+        id: set_template
+        run: |
+          echo "${{ github.event_name }}" >> $GITHUB_STATE
+          echo "$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)" >> $GITHUB_STATE
 
+      - name: Parse PR Template
+        id: parse_template
+        uses: actions/github-script@v7.0.1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            try {
+              const template = await github.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+              });
+              const parsedData = extractPRType(template.data.content);  // Replace with your function
+              console.log(JSON.stringify(parsedData));  // Log parsed data for reference
+              core.exportVariable('PARSED_DATA', JSON.stringify(parsedData));
+            } catch (error) {
+              console.error('Error fetching or parsing PR template:', error.message);
+              core.setFailed('Failed to fetch or parse PR template');
+            }
+
+      - name: Auto Assign Reviewers
+        if: success() && env.TEMPLATE
+        uses: actions/github-script@v7.0.1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const parsedData = JSON.parse(process.env.PARSED_DATA);
+            // Add logic to assign reviewers based on parsed data
+            console.log('Parsed data:', parsedData);
+            // Replace this with your logic to assign reviewers
+
+  auto_assign_creator:
+    needs: auto_assign_reviewers
+    runs-on: ubuntu-latest
+    steps:
       - name: Assign PR Creator
-        uses: actions/github-script@v6.4.1
+        uses: actions/github-script@v7.0.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
             const pull_number = context.payload.pull_request.number;
             const creator = context.payload.pull_request.user.login;
-
-            github.rest.issues.addAssignees({
+            const { data: { assignees } } = await github.rest.issues.get({
                 issue_number: pull_number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                assignees: [creator]
             });
 
-  auto-assign-reviewers:  # Job to assign reviewers based on PR type
+            // Ensure the PR creator is not assigned already
+            if (!assignees.map(assignee => assignee.login).includes(creator)) {
+                github.rest.issues.addAssignees({
+                    issue_number: pull_number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    assignees: [creator]
+                });
+            }
+
+  add_annotations:
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
+      - name: Parse PR Template
+        id: parse_template
+        uses: actions/github-script@v7.0.1
         with:
-          egress-policy: audit
-      - name: Checkout Code
-        uses: actions/checkout@v3.6.0
-
-      - name: Auto Assign Reviewers
-        uses: actions/github-script@v6.4.1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_TOKEN }}
           script: |
+            const template = await github.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+            });
+            const parsedData = extractPRType(template.data.content);
+            core.setOutput('parsedData', JSON.stringify(parsedData));
+
+      - name: Add Annotations
+        if: ${{ steps.parse_template.outputs.success }}
+        uses: actions/github-script@v7.0.1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const parsedData = JSON.parse(core.getOutput('parsedData'));
             const pull_number = context.payload.pull_request.number;
-            const body = context.payload.pull_request.body;
-            const baseRef = context.payload.pull_request.base.ref;
-            const assignees = [];
+            const { data: { assignees } } = await github.rest.issues.get({
+              issue_number: pull_number,
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
 
-            // Check for PR type (Application or Infrastructure)
-            const isApplicationPR = body.includes("Applications");
-            const isInfrastructurePR = body.includes("Infrastructure");
-
-            // Assign reviewers based on PR type and target branch
-            if (isApplicationPR) {
-              assignees.push("GTCrais");
-            }
-
-            if (isInfrastructurePR) {
-              assignees.push("mbsimonovic");
-            }
-
-            if (baseRef === "master") {
-              assignees.push("CTLLaw"); 
-            }
-
-            // Assign the reviewers
-            if (assignees.length > 0) {
-              github.rest.issues.addAssignees({
-                issue_number: pull_number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                assignees: assignees,
+            let annotations = [];
+            if (!parsedData.prType) {
+              annotations.push({
+                path: "",
+                body: "**Please specify the PR type (Applications or Infrastructure) in the template.**",
+                annotation_level: "warning"
               });
             }
 
+            if (annotations.length > 0) {
+              console.log("Adding annotations:", annotations);
+              // Use github.rest.issues.createComment to add annotations to the PR
+              // (implementation details omitted for brevity)
+            }

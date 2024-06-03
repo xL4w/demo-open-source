@@ -1,62 +1,44 @@
-# This file is a set of instructions for a computer program called GitHub Actions.
-# GitHub Actions helps automate tasks related to your software project on GitHub.
-
-# This file is used to run tests on your project.
-# This specific set of instructions is named "Enforce Branch Sequence"
 name: Enforce Branch Sequence
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-permissions:
-  contents: read
+  pull_request_target:
+    types: [opened, reopened, synchronize]
 
 jobs:
-  enforce-branch-sequence:
-    runs-on: ubuntu-latest 
+  check_branch_sequence:
+    runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0 # Latest version as of 2024-05-31
+        uses: step-security/harden-runner@v2.8.0
         with:
           egress-policy: audit
 
-      - name: Checkout Code
-        uses: actions/checkout@v3.6.0  # Latest version as of 2024-05-31
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2
+        with:
+         path: |
+           ./.github/workflows/
+         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+         restore-keys: |
+           ${{ runner.os }}-workflow-${{ github.event_name }}-                
 
-      - name: Check PR Branch Sequence
-        id: check-branch-sequence
-        run: |
-          allowed_sequences=(
-            "Any branch --> aws-dev" 
-            "aws-dev --> staging"     
-            "staging --> master"      
-          )
+      - name: Check Branch Sequence
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const headBranch = context.payload.pull_request.head.ref;
+            const baseBranch = context.payload.pull_request.base.ref;
+            const allowedTransitions = [
+              ['aws-dev', 'staging'],
+              ['staging', 'master']
+            ];
 
-          base_ref="${{ github.base_ref }}"
-          head_ref="${{ github.head_ref }}"
+            const isValidTransition = allowedTransitions.some(
+              ([source, target]) => headBranch === source && baseBranch === target
+            );
 
-          # Improved Branch Sequence Logic
-          valid_sequence=false
-          for seq in "${allowed_sequences[@]}"; do
-            IFS='-->' read -r allowed_base allowed_head <<< "$seq"  
-            allowed_base=$(echo "$allowed_base" | xargs)  # Trim whitespace
-            allowed_head=$(echo "$allowed_head" | xargs) 
-
-            if [[ ("$allowed_base" == "Any branch" || "$base_ref" == "$allowed_base") && "$head_ref" == "$allowed_head" ]]; then
-              valid_sequence=true
-              break
-            fi
-          done
-
-          if [ "$valid_sequence" = true ]; then
-            echo "Success: The branch sequence is valid."
-          else
-            echo "Error: This PR violates the required branch sequence."
-            echo "Allowed sequences are:"
-            for seq in "${allowed_sequences[@]}"; do
-              echo "- $seq"
-            done
-            exit 1 
-          fi
-        shell: bash  
+            if (!isValidTransition) {
+              throw new Error(
+                `Invalid branch transition: Pull requests are only allowed from aws-dev to staging and from staging to master.`
+              );
+            }
