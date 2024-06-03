@@ -6,8 +6,8 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize]
     paths:
-      - '.github/workflows/auto-assign.yml'
-      - '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+      - './.github/workflows/auto-assign.yml'
+      - './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
       - name: Set PR Template Output
         id: set_template
         run: |
-          echo "::set-env name=TEMPLATE::$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
+          echo "::set-env name=TEMPLATE::$(cat ./.github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
 
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0
@@ -37,7 +37,7 @@ jobs:
               const template = await github.repos.getContent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+                path: './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
               });
               const parsedData = extractPRType(template.data.content);  // Replace with your function
               console.log(JSON.stringify(parsedData));  // Log parsed data for reference
@@ -66,7 +66,7 @@ jobs:
         uses: step-security/harden-runner@v2.8.0
         with:
          egress-policy: audit
-               
+
       - name: Assign PR Creator
         uses: actions/github-script@v7.0.1
         with:
@@ -102,7 +102,7 @@ jobs:
             const template = await github.repos.getContent({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+              path: './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
             });
             const parsedData = extractPRType(template.data.content);
             core.setOutput('parsedData', JSON.stringify(parsedData));
