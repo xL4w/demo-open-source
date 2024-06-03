@@ -17,16 +17,9 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Get Pull Request Template
-        uses: actions/checkout@v4.1.6
-        with:
-          path: .github/PULL_REQUEST_TEMPLATE
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Read PR Template
-        id: read_template
-        run: |
-          echo "::set-output name=template::$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
+      - name: Get Pull Request Body
+        id: get_pr_body
+        run: echo "::set-output name=body::${{ github.event.pull_request.body }}"
 
       - name: Auto Assign Reviewers
         uses: actions/github-script@v7.0.1
@@ -35,16 +28,14 @@ jobs:
           script: |
             const pull_number = context.payload.pull_request.number;
             const body = context.payload.pull_request.body || "";
-            const template = github.context.outputs.template || "";
-            const baseRef = context.payload.pull_request.base.ref;
-            const creator = context.payload.pull_request.user.login;
+            
+            // Check for PR type (Applications or Infrastructure) in the PR body
+            const isApplicationsPR = body.toLowerCase().includes("[x] **applications**");
+            const isInfrastructurePR = body.toLowerCase().includes("[x] **infrastructure**");
+            
             const reviewers = [];
 
-            // Check for PR type (Application or Infrastructure) in the PR body or template
-            const isApplicationsPR = body.toLowerCase().includes("[x] **applications**") || template.toLowerCase().includes("[x] **applications**");
-            const isInfrastructurePR = body.toLowerCase().includes("[x] **infrastructure**") || template.toLowerCase().includes("[x] **infrastructure**");
-
-            // Assign reviewers based on PR type and target branch
+            // Assign reviewers based on PR type
             if (isApplicationsPR) {
               reviewers.push("GTCrais");
               // Add additional reviewer based on PR type
@@ -55,13 +46,13 @@ jobs:
               reviewers.push("mbsimonovic");
               // PR creator checks it if it's an Infrastructure PR
               if (!body.toLowerCase().includes("[x] **infrastructure**")) {
-                reviewers.push(creator);
+                reviewers.push(context.payload.pull_request.user.login);
               }
               // Add additional reviewer based on PR type
               reviewers.push("additionalReviewerForInfrastructure");
             }
 
-            if (baseRef === "master") {
+            if (context.payload.pull_request.base.ref === "master") {
               reviewers.push("CTLLaw");
             }
 
@@ -73,9 +64,8 @@ jobs:
                 repo: context.repo.repo,
                 reviewers: reviewers,
               });
-            }
 
-  auto-assign-creator:  # Assign PR creator (only if not already a reviewer)
+  auto-assign-creator:
     needs: auto_assign_reviewers
     runs-on: ubuntu-latest
     steps:
