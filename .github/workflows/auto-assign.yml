@@ -9,63 +9,83 @@ permissions:
   pull-requests: write
 
 jobs:
-  auto-assign-reviewers:  # Job to assign reviewers based on PR type
+  auto_assign_reviewers:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0
         with:
           egress-policy: audit
-      - name: Checkout Code
-        uses: actions/checkout@v4.1.6
+
+      - name: Get Pull Request Template
+        uses: actions/checkout@v2
+        with:
+          path: .github/PULL_REQUEST_TEMPLATE
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Read PR Template
+        id: read_template
+        run: |
+          echo "::set-output name=template::$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
+
       - name: Auto Assign Reviewers
         uses: actions/github-script@v7.0.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
             const pull_number = context.payload.pull_request.number;
-            const body = context.payload.pull_request.body;
+            const body = context.payload.pull_request.body || "";
+            const template = github.context.outputs.template || "";
             const baseRef = context.payload.pull_request.base.ref;
-            const assignees = [];
+            const creator = context.payload.pull_request.user.login;
+            const reviewers = [];
 
-            // Check for PR type (Application or Infrastructure)
-            const isApplicationPR = body.includes("Applications");
-            const isInfrastructurePR = body.includes("Infrastructure");
+            // Check for PR type (Application or Infrastructure) in the PR body or template
+            const isApplicationsPR = body.toLowerCase().includes("[x] **applications**") || template.toLowerCase().includes("[x] **applications**");
+            const isInfrastructurePR = body.toLowerCase().includes("[x] **infrastructure**") || template.toLowerCase().includes("[x] **infrastructure**");
 
             // Assign reviewers based on PR type and target branch
-            if (isApplicationPR) {
-              assignees.push("GTCrais");
+            if (isApplicationsPR) {
+              reviewers.push("GTCrais");
+              // Add additional reviewer based on PR type
+              reviewers.push("additionalReviewerForApplications");
             }
 
             if (isInfrastructurePR) {
-              assignees.push("mbsimonovic");
+              reviewers.push("mbsimonovic");
+              // PR creator checks it if it's an Infrastructure PR
+              if (!body.toLowerCase().includes("[x] **infrastructure**")) {
+                reviewers.push(creator);
+              }
+              // Add additional reviewer based on PR type
+              reviewers.push("additionalReviewerForInfrastructure");
             }
 
             if (baseRef === "master") {
-              assignees.push("CTLLaw"); 
+              reviewers.push("CTLLaw");
             }
 
             // Assign the reviewers
-            if (assignees.length > 0) {
-              github.rest.issues.addAssignees({
-                issue_number: pull_number,
+            if (reviewers.length > 0) {
+              github.rest.pulls.requestReviewers({
+                pull_number: pull_number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                assignees: assignees,
+                reviewers: reviewers,
               });
             }
 
-  auto-assign-creator:  # Job to assign the PR creator
-    needs: auto-assign-reviewers # Make this job dependent on the auto-assign-reviewers job
+  auto-assign-creator:  # Assign PR creator (only if not already a reviewer)
+    needs: auto_assign_reviewers
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
+        uses: step-security/harden-runner@v2.8.0 # Updated to latest version
         with:
           egress-policy: audit
 
       - name: Assign PR Creator
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@v7.0.1  # Updated to latest version
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
@@ -76,6 +96,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
             });
+
             // Ensure the PR creator is not assigned already
             if (!assignees.map(assignee => assignee.login).includes(creator)) {
                 github.rest.issues.addAssignees({
