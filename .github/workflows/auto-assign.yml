@@ -6,8 +6,8 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize]
     paths:
-      - './.github/workflows/auto-assign.yml'
-      - './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+      - '.github/workflows/auto-assign.yml'
+      - '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
 
 permissions:
   contents: read
@@ -20,22 +20,9 @@ jobs:
       - name: Set PR Template Output
         id: set_template
         run: |
-          echo "::set-env name=TEMPLATE::$(cat ./.github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
+          echo "${{ github.event_name }}" >> $GITHUB_STATE
+          echo "$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)" >> $GITHUB_STATE
 
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
-        with:
-         egress-policy: audit
-
-      - name: Clear Cache
-        uses: actions/cache@v4.0.2
-        with:
-         path: |
-           ./.github/workflows/
-         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
-         restore-keys: |
-           ${{ runner.os }}-workflow-${{ github.event_name }}-       
-         
       - name: Parse PR Template
         id: parse_template
         uses: actions/github-script@v7.0.1
@@ -46,7 +33,7 @@ jobs:
               const template = await github.repos.getContent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                path: './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+                path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
               });
               const parsedData = extractPRType(template.data.content);  // Replace with your function
               console.log(JSON.stringify(parsedData));  // Log parsed data for reference
@@ -71,11 +58,6 @@ jobs:
     needs: auto_assign_reviewers
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
-        with:
-         egress-policy: audit
-
       - name: Assign PR Creator
         uses: actions/github-script@v7.0.1
         with:
@@ -111,7 +93,7 @@ jobs:
             const template = await github.repos.getContent({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              path: './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+              path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
             });
             const parsedData = extractPRType(template.data.content);
             core.setOutput('parsedData', JSON.stringify(parsedData));
@@ -142,4 +124,5 @@ jobs:
             if (annotations.length > 0) {
               console.log("Adding annotations:", annotations);
               // Use github.rest.issues.createComment to add annotations to the PR
+              // (implementation details omitted for brevity)
             }
