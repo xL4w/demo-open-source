@@ -6,8 +6,8 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize]
     paths:
-      - './.github/workflows/auto-assign.yml'
-      - './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+      - '.github/workflows/auto-assign.yml'
+      - '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
 
 permissions:
   contents: read
@@ -17,13 +17,16 @@ jobs:
   auto_assign_reviewers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
       - name: Set PR Template Output
         id: set_template
         run: |
-          echo "::set-output name=template::$(cat ./.github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
+          echo "::set-env name=TEMPLATE::$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
 
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.8.0
+        with:
+         egress-policy: audit
+         
       - name: Parse PR Template
         id: parse_template
         uses: actions/github-script@v7.0.1
@@ -34,22 +37,23 @@ jobs:
               const template = await github.repos.getContent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                path: './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+                path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
               });
               const parsedData = extractPRType(template.data.content);  // Replace with your function
-              core.setOutput('parsedData', JSON.stringify(parsedData));
+              console.log(JSON.stringify(parsedData));  // Log parsed data for reference
+              core.exportVariable('PARSED_DATA', JSON.stringify(parsedData));
             } catch (error) {
               console.error('Error fetching or parsing PR template:', error.message);
               core.setFailed('Failed to fetch or parse PR template');
             }
 
       - name: Auto Assign Reviewers
-        if: success() && steps.set_template.outputs.template
+        if: success() && env.TEMPLATE
         uses: actions/github-script@v7.0.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
-            const parsedData = JSON.parse(core.getInput('parsedData'));
+            const parsedData = JSON.parse(process.env.PARSED_DATA);
             // Add logic to assign reviewers based on parsed data
             console.log('Parsed data:', parsedData);
             // Replace this with your logic to assign reviewers
@@ -58,6 +62,11 @@ jobs:
     needs: auto_assign_reviewers
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.8.0
+        with:
+         egress-policy: audit
+               
       - name: Assign PR Creator
         uses: actions/github-script@v7.0.1
         with:
@@ -71,6 +80,7 @@ jobs:
                 repo: context.repo.repo,
             });
 
+            // Ensure the PR creator is not assigned already
             if (!assignees.map(assignee => assignee.login).includes(creator)) {
                 github.rest.issues.addAssignees({
                     issue_number: pull_number,
@@ -123,5 +133,4 @@ jobs:
             if (annotations.length > 0) {
               console.log("Adding annotations:", annotations);
               // Use github.rest.issues.createComment to add annotations to the PR
-              // (implementation details omitted for brevity)
             }
