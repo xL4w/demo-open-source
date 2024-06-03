@@ -9,17 +9,19 @@ permissions:
   pull-requests: write
 
 jobs:
-  auto-assign-reviewers:  # Job to assign reviewers based on PR type
+  auto-assign-reviewers:  # Assign reviewers based on PR type
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
+        uses: step-security/harden-runner@v2.8.0 # Updated to latest version
         with:
           egress-policy: audit
+
       - name: Checkout Code
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4.1.6 # Updated to latest version
+
       - name: Auto Assign Reviewers
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@v7.0.1  # Updated to latest version
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
@@ -33,11 +35,9 @@ jobs:
             const isInfrastructurePR = body.includes("Infrastructure");
 
             // Assign reviewers based on PR type and target branch
-            if (isApplicationPR) {
+            if (isApplicationPR && baseRef !== 'master') {
               assignees.push("GTCrais");
-            }
-
-            if (isInfrastructurePR) {
+            } else if (isInfrastructurePR && baseRef !== 'master') {
               assignees.push("mbsimonovic");
             }
 
@@ -55,17 +55,17 @@ jobs:
               });
             }
 
-  auto-assign-creator:  # Job to assign the PR creator
-    needs: auto-assign-reviewers # Make this job dependent on the auto-assign-reviewers job
+  auto-assign-creator:  # Assign PR creator (only if not already a reviewer)
+    needs: auto-assign-reviewers
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
+        uses: step-security/harden-runner@v2.8.0 # Updated to latest version
         with:
           egress-policy: audit
 
       - name: Assign PR Creator
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@v7.0.1  # Updated to latest version
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
@@ -76,6 +76,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
             });
+
             // Ensure the PR creator is not assigned already
             if (!assignees.map(assignee => assignee.login).includes(creator)) {
                 github.rest.issues.addAssignees({

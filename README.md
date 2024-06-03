@@ -11,7 +11,7 @@ The repo includes an `index.html` file (so it can render a web page), two GitHub
 As this demo repository is in the development stage, it is important to clean up the workflow runs using the below command
 
 ```ShellSession
-for run_id in $(gh run list --limit 100 --json databaseId -q '.[].databaseId'); do gh run delete $run_id --repo Nucleus-Flow-Testing/demo-repository; don
+for run_id in $(gh run list --limit 100 --json databaseId -q '.[].databaseId'); do gh run delete $run_id --repo CTLLAW-Org/demo-open-source; done
 ```
 
 After clean-up is performed there should be only one run per workflow in the dashboard, to achieve this it is necessary, to create a last PR and merge it, in the master branch.
