@@ -28,7 +28,7 @@ jobs:
             const assignees = [];
 
             // Check for PR type (Application or Infrastructure)
-            const isApplicationPR = body.toLowerCase().includes("applications");
+            const isApplicationsPR = body.toLowerCase().includes("applications");
             const isInfrastructurePR = body.toLowerCase().includes("infrastructure");
 
             // Assign reviewers based on PR type and target branch

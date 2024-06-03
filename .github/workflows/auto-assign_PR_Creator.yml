@@ -38,4 +38,3 @@ jobs:
               repo: context.repo.repo,
               body: `@${creator} you have been automatically assigned to this pull request. Feel free to add or remove assignees as needed.` 
             });
-
