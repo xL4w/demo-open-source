@@ -13,8 +13,13 @@ jobs:
         branch: [master, staging, aws-dev]
         scriptPath: ["01-direct-push-master.sh", "02-direct-push-staging.sh", "03-direct-push-aws-dev.sh"]
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.8.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.6
       - name: Run test script
         run: |
           chmod +x scripts/${{ matrix.scriptPath }}
@@ -31,7 +36,7 @@ jobs:
         ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.6
       - name: Run test script
         run: |
           chmod +x scripts/${{ matrix.case.script }}
@@ -49,7 +54,7 @@ jobs:
         ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.6
       - name: Run test script
         run: |
           chmod +x scripts/${{ matrix.case.script }}
@@ -59,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.6
       - name: Run test script for adding invalid reviewers
         run: |
           chmod +x scripts/09-add-invalid-reviewer.sh
