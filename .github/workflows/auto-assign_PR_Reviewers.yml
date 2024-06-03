@@ -1,8 +1,12 @@
 name: Auto Assign PR Reviewers
 
 on:
+  # Trigger when a pull request is opened or reopened
   pull_request:
-    types: [opened]
+    types: [opened, reopened, ready_for_review] 
+  # Trigger when a pull request's target branch changes
+  pull_request_target:
+    types: [opened, reopened, synchronize]
 
 permissions:
   contents: read
