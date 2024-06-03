@@ -6,8 +6,8 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize]
     paths:
-      - '.github/workflows/auto-assign.yml'
-      - '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+      - './.github/workflows/auto-assign.yml'
+      - './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
 
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
       - name: Set PR Template Output
         id: set_template
         run: |
-          echo "::set-output name=template::$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
+          echo "::set-output name=template::$(cat ./.github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
 
       - name: Parse PR Template
         id: parse_template
@@ -34,7 +34,7 @@ jobs:
               const template = await github.repos.getContent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+                path: './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
               });
               const parsedData = extractPRType(template.data.content);  // Replace with your function
               core.setOutput('parsedData', JSON.stringify(parsedData));
