@@ -1,6 +1,7 @@
 name: Auto Assign PR Creator
 
 on:
+  # Trigger when a pull request is opened or reopened
   pull_request:
     types: [opened, reopened, ready_for_review] 
   # Trigger when a pull request's target branch changes
