@@ -19,8 +19,10 @@ on:
 permissions:
   contents: read
 
-jobs:
+env:
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}  # Set the GH_TOKEN environment variable
 
+jobs:
   clear-cache:
     runs-on: ubuntu-latest
     steps:
@@ -33,112 +35,66 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-workflow-${{ github.event_name }}-
 
-  
   test-branch-sequence:
     runs-on: ubuntu-latest
+    needs: clear-cache
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+      - name: Run Common Steps
+        uses: ./.github/workflows/common-steps.yml
         with:
-          egress-policy: audit
-
-      - name: Checkout Code
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
-
-      - name: Verify working directory
-        run: pwd
-
-      - name: List root directory
-        run: ls -la 
-
-      - name: List workflows directory
-        run: ls -la ./.github/workflows
-
-      - name: List scripts directory
-        run: ls -la ./.github/workflows/scripts
-
-      - name: Check if test script exists
-        run: test -f ./.github/workflows/scripts/enforce-branch-sequence-test.sh && echo "File exists" || echo "File does not exist"        
-
-      - name: Make tests scripts executable
-        run: |
-          chmod +x ./.github/workflows/scripts/common_functions.sh
-          chmod +x ./.github/workflows/scripts/enforce-branch-sequence-test.sh
-          chmod +x ./.github/workflows/scripts/01-direct-push-master.sh
-          chmod +x ./.github/workflows/scripts/02-direct-push-staging.sh
-          chmod +x ./.github/workflows/scripts/03-direct-push-aws-dev.sh
-          chmod +x ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh    
-          chmod +x ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh          
-          chmod +x ./.github/workflows/scripts/06-pr-staging-to-master.sh    
-          chmod +x ./.github/workflows/scripts/07-pr-creation-gtcrais.sh 
-          chmod +x ./.github/workflows/scripts/08-pr-creation-ctllaw.sh
-          chmod +x ./.github/workflows/scripts/09-add-invalid-reviewer.sh
-          chmod +x ./.github/workflows/scripts/10-approval-merge-permissions.sh
+          working-directory: ${{ github.workspace }}
 
       - name: Run Branch Sequence Tests
         run: |
+          set -e  # Enable exit on error
           ./.github/workflows/scripts/enforce-branch-sequence-test.sh || echo "Branch sequence tests failed."
+
+  test-case-07:
+    runs-on: ubuntu-latest
+    needs: clear-cache
+    steps:
+      - name: Run Test Case 07
+        uses: ./.github/workflows/common-steps.yml
+        with:
+          working-directory: ${{ github.workspace }}
+
+      - name: Run Test Case 07
+        run: |
+          set -e  # Enable exit on error
+          ./.github/workflows/scripts/07-pr-creation-gtcrais.sh || echo "Test case 07 failed."
+
+  test-case-08:
+    runs-on: ubuntu-latest
+    needs: clear-cache
+    steps:
+      - name: Run Test Case 08
+        uses: ./.github/workflows/common-steps.yml
+        with:
+          working-directory: ${{ github.workspace }}
+
+      - name: Run Test Case 08
+        run: |
+          set -e  # Enable exit on error
+          ./.github/workflows/scripts/08-pr-creation-ctllaw.sh || echo "Test case 08 failed."
 
   test-reviewer-permissions:
     runs-on: ubuntu-latest
+    needs: clear-cache
     env:  
       PR_CREATOR: automation-bot # Use the same user for all PR creation tests
       INVALID_REVIEWER: "4k4xs4pH1r3-2"  # Replace with an invalid reviewer name
 
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+      - name: Run Test Cases
+        uses: ./.github/workflows/common-steps.yml
         with:
-          egress-policy: audit
-
-      - name: Checkout Code
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+          working-directory: ${{ github.workspace }}
 
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      - name: Verify working directory
-        run: pwd
-
-      - name: List root directory
-        run: ls -la 
-
-      - name: List workflows directory
-        run: ls -la ./.github/workflows
-
-      - name: List scripts directory
-        run: ls -la ./.github/workflows/scripts
-
-      - name: Check if test script exists
-        run: test -f ./.github/workflows/scripts/enforce-branch-sequence-test.sh && echo "File exists" || echo "File does not exist"        
-
-      - name: Make tests scripts executable
-        run: |
-          chmod +x ./.github/workflows/scripts/common_functions.sh
-          chmod +x ./.github/workflows/scripts/enforce-branch-sequence-test.sh
-          chmod +x ./.github/workflows/scripts/01-direct-push-master.sh
-          chmod +x ./.github/workflows/scripts/02-direct-push-staging.sh
-          chmod +x ./.github/workflows/scripts/03-direct-push-aws-dev.sh
-          chmod +x ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh    
-          chmod +x ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh          
-          chmod +x ./.github/workflows/scripts/06-pr-staging-to-master.sh    
-          chmod +x ./.github/workflows/scripts/07-pr-creation-gtcrais.sh 
-          chmod +x ./.github/workflows/scripts/08-pr-creation-ctllaw.sh
-          chmod +x ./.github/workflows/scripts/09-add-invalid-reviewer.sh
-          chmod +x ./.github/workflows/scripts/10-approval-merge-permissions.sh
-
       - name: Run Test Cases
         run: |
           set -e  # Enable exit on error
-          if ! ./.github/workflows/scripts/01-direct-push-master.sh &&
-             ! ./.github/workflows/scripts/02-direct-push-staging.sh &&
-             ! ./.github/workflows/scripts/03-direct-push-aws-dev.sh &&
-             ! ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh &&
-             ! ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh &&
-             ! ./.github/workflows/scripts/06-pr-staging-to-master.sh &&
-             ! ./.github/workflows/scripts/07-pr-creation-gtcrais.sh &&
-             ! ./.github/workflows/scripts/08-pr-creation-ctllaw.sh &&
-             ! ./.github/workflows/scripts/09-add-invalid-reviewer.sh &&
-             ! ./.github/workflows/scripts/10-approval-merge-permissions.sh; then
-            echo "One or more test cases failed."
-          fi
+          ./.github/workflows/scripts/09-add-invalid-reviewer.sh || echo "Test case 09 failed."
+          ./.github/workflows/scripts/10-approval-merge-permissions.sh || echo "Test case 10 failed."
