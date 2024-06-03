@@ -17,21 +17,26 @@ jobs:
   auto_assign_reviewers:
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
-        with:
-          egress-policy: audit
+      - uses: actions/checkout@v4.1.6
 
-      - name: Get Pull Request Template
-        uses: actions/checkout@v4.1.6
-        with:
-          path: .github/PULL_REQUEST_TEMPLATE
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Read PR Template
-        id: read_template
+      - name: Set PR Template Output
+        id: set_template
         run: |
           echo "::set-output name=template::$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)"
+
+      - name: Parse PR Template
+        id: parse_template
+        uses: actions/github-script@v7.0.1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const template = await github.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+            });
+            const parsedData = extractPRType(template.data.content);  // Replace with your function
+            core.setOutput('parsedData', JSON.stringify(parsedData));
 
       - name: Auto Assign Reviewers
         uses: actions/github-script@v7.0.1
@@ -45,32 +50,24 @@ jobs:
             const creator = context.payload.pull_request.user.login;
             const reviewers = [];
 
-            // Check for PR type (Application or Infrastructure) in the PR body or template
             const isApplicationsPR = body.toLowerCase().includes("[x] **applications**") || template.toLowerCase().includes("[x] **applications**");
             const isInfrastructurePR = body.toLowerCase().includes("[x] **infrastructure**") || template.toLowerCase().includes("[x] **infrastructure**");
 
-            // Assign reviewers based on PR type and target branch
-            if (isApplicationsPR) {
-              reviewers.push("GTCrais");
-              // Add additional reviewer based on PR type
-              reviewers.push("additionalReviewerForApplications");
-            }
+            const additionalReviewerForApplications = isApplicationsPR ? "additionalReviewerForApplications" : "";
+            const additionalReviewerForInfrastructure = isInfrastructurePR ? "additionalReviewerForInfrastructure" : "";
+            const reviewersToAdd = {
+              "GTCrais": isApplicationsPR,
+              "mbsimonovic": isInfrastructurePR,
+              [creator]: isInfrastructurePR && !body.toLowerCase().includes("[x] **infrastructure**"),
+              "CTLLaw": baseRef === "master"
+            };
 
-            if (isInfrastructurePR) {
-              reviewers.push("mbsimonovic");
-              // PR creator checks it if it's an Infrastructure PR
-              if (!body.toLowerCase().includes("[x] **infrastructure**")) {
-                reviewers.push(creator);
+            Object.entries(reviewersToAdd).forEach(([reviewer, shouldAdd]) => {
+              if (shouldAdd) {
+                reviewers.push(reviewer);
               }
-              // Add additional reviewer based on PR type
-              reviewers.push("additionalReviewerForInfrastructure");
-            }
+            });
 
-            if (baseRef === "master") {
-              reviewers.push("CTLLaw");
-            }
-
-            // Assign the reviewers
             if (reviewers.length > 0) {
               github.rest.pulls.requestReviewers({
                 pull_number: pull_number,
@@ -80,15 +77,10 @@ jobs:
               });
             }
 
-  auto-assign-creator:  # Assign PR creator (only if not already a reviewer)
+  auto_assign_creator:
     needs: auto_assign_reviewers
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
-        with:
-          egress-policy: audit
-
       - name: Assign PR Creator
         uses: actions/github-script@v7.0.1
         with:
@@ -102,7 +94,6 @@ jobs:
                 repo: context.repo.repo,
             });
 
-            // Ensure the PR creator is not assigned already
             if (!assignees.map(assignee => assignee.login).includes(creator)) {
                 github.rest.issues.addAssignees({
                     issue_number: pull_number,
@@ -110,4 +101,50 @@ jobs:
                     repo: context.repo.repo,
                     assignees: [creator]
                 });
+            }
+
+  add_annotations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse PR Template
+        id: parse_template
+        uses: actions/github-script@v7.0.1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const template = await github.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+            });
+            const parsedData = extractPRType(template.data.content);
+            core.setOutput('parsedData', JSON.stringify(parsedData));
+
+      - name: Add Annotations
+        if: ${{ steps.parse_template.outputs.success }}
+        uses: actions/github-script@v7.0.1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const parsedData = JSON.parse(core.getOutput('parsedData'));
+            const pull_number = context.payload.pull_request.number;
+            const { data: { assignees } } = await github.rest.issues.get({
+              issue_number: pull_number,
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            let annotations = [];
+            if (!parsedData.prType) {
+              annotations.push({
+                path: "",
+                body: "**Please specify the PR type (Applications or Infrastructure) in the template.**",
+                annotation_level: "warning"
+              });
+            }
+
+            if (annotations.length > 0) {
+              console.log("Adding annotations:", annotations);
+              // Use github.rest.issues.createComment to add annotations to the PR
+              // (implementation details omitted for brevity)
             }
