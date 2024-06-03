@@ -17,7 +17,7 @@ jobs:
   auto_assign_reviewers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.1.6
+      - uses: actions/checkout@v2
 
       - name: Set PR Template Output
         id: set_template
@@ -30,52 +30,29 @@ jobs:
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
-            const template = await github.repos.getContent({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
-            });
-            const parsedData = extractPRType(template.data.content);  // Replace with your function
-            core.setOutput('parsedData', JSON.stringify(parsedData));
+            try {
+              const template = await github.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+              });
+              const parsedData = extractPRType(template.data.content);  // Replace with your function
+              core.setOutput('parsedData', JSON.stringify(parsedData));
+            } catch (error) {
+              console.error('Error fetching or parsing PR template:', error.message);
+              core.setFailed('Failed to fetch or parse PR template');
+            }
 
       - name: Auto Assign Reviewers
+        if: success() && steps.set_template.outputs.template
         uses: actions/github-script@v7.0.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
-            const pull_number = context.payload.pull_request.number;
-            const body = context.payload.pull_request.body || "";
-            const template = github.context.outputs.template || "";
-            const baseRef = context.payload.pull_request.base.ref;
-            const creator = context.payload.pull_request.user.login;
-            const reviewers = [];
-
-            const isApplicationsPR = body.toLowerCase().includes("[x] **applications**") || template.toLowerCase().includes("[x] **applications**");
-            const isInfrastructurePR = body.toLowerCase().includes("[x] **infrastructure**") || template.toLowerCase().includes("[x] **infrastructure**");
-
-            const additionalReviewerForApplications = isApplicationsPR ? "additionalReviewerForApplications" : "";
-            const additionalReviewerForInfrastructure = isInfrastructurePR ? "additionalReviewerForInfrastructure" : "";
-            const reviewersToAdd = {
-              "GTCrais": isApplicationsPR,
-              "mbsimonovic": isInfrastructurePR,
-              [creator]: isInfrastructurePR && !body.toLowerCase().includes("[x] **infrastructure**"),
-              "CTLLaw": baseRef === "master"
-            };
-
-            Object.entries(reviewersToAdd).forEach(([reviewer, shouldAdd]) => {
-              if (shouldAdd) {
-                reviewers.push(reviewer);
-              }
-            });
-
-            if (reviewers.length > 0) {
-              github.rest.pulls.requestReviewers({
-                pull_number: pull_number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                reviewers: reviewers,
-              });
-            }
+            const parsedData = JSON.parse(core.getInput('parsedData'));
+            // Add logic to assign reviewers based on parsed data
+            console.log('Parsed data:', parsedData);
+            // Replace this with your logic to assign reviewers
 
   auto_assign_creator:
     needs: auto_assign_reviewers
