@@ -13,6 +13,15 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2
+        with:
+         path: |
+           ./.github/workflows/
+         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+         restore-keys: |
+           ${{ runner.os }}-workflow-${{ github.event_name }}-                
+
       - name: Check Branch Sequence
         uses: actions/github-script@v7.0.1
         with:
