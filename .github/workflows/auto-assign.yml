@@ -6,22 +6,36 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize]
     paths:
-      - '.github/workflows/auto-assign.yml'
-      - '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+      - './.github/workflows/auto-assign.yml'
+      - './.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
 
 permissions:
   contents: read
   pull-requests: write
 
+env:
+  PRTP: ./.github/PULL_REQUEST_TEMPLATE/pull_request_template.md
+
 jobs:
-  auto_assign_reviewers:
+  parse_template:
     runs-on: ubuntu-latest
     steps:
-      - name: Set PR Template Output
-        id: set_template
-        run: |
-          echo "${{ github.event_name }}" >> $GITHUB_STATE
-          echo "$(cat .github/PULL_REQUEST_TEMPLATE/pull_request_template.md)" >> $GITHUB_STATE
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2.8.0
+        with:
+          egress-policy: audit
+
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2
+        with:
+          path: |
+            ./.github/workflows/
+          key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-workflow-${{ github.event_name }}-
 
       - name: Parse PR Template
         id: parse_template
@@ -29,30 +43,39 @@ jobs:
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
+            const fs = require('fs');
+            const extractPRType = require('./.github/workflows/extractPRType');
+
             try {
               const template = await github.repos.getContent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
+                path: '${{ env.PRTP }}'
               });
-              const parsedData = extractPRType(template.data.content);  // Replace with your function
-              console.log(JSON.stringify(parsedData));  // Log parsed data for reference
-              core.exportVariable('PARSED_DATA', JSON.stringify(parsedData));
+              const content = Buffer.from(template.data.content, 'base64').toString('utf-8');
+              const parsedData = extractPRType(content);
+              core.setOutput('PARSED_DATA', JSON.stringify(parsedData));
             } catch (error) {
               console.error('Error fetching or parsing PR template:', error.message);
               core.setFailed('Failed to fetch or parse PR template');
             }
 
+  auto_assign_reviewers:
+    needs: parse_template
+    runs-on: ubuntu-latest
+    steps:
       - name: Auto Assign Reviewers
-        if: success() && env.TEMPLATE
         uses: actions/github-script@v7.0.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
-            const parsedData = JSON.parse(process.env.PARSED_DATA);
-            // Add logic to assign reviewers based on parsed data
-            console.log('Parsed data:', parsedData);
-            // Replace this with your logic to assign reviewers
+            if ('${{ needs.parse_template.outputs.PARSED_DATA }}') {
+              const parsedData = JSON.parse('${{ needs.parse_template.outputs.PARSED_DATA }}');
+              console.log('Parsed data:', parsedData);
+              // Add logic to assign reviewers based on parsed data
+            } else {
+              console.error('No PARSED_DATA output from parse_template job');
+            }
 
   auto_assign_creator:
     needs: auto_assign_reviewers
@@ -82,47 +105,39 @@ jobs:
             }
 
   add_annotations:
+    needs: parse_template
     runs-on: ubuntu-latest
     steps:
-      - name: Parse PR Template
-        id: parse_template
-        uses: actions/github-script@v7.0.1
-        with:
-          github-token: ${{ secrets.GH_TOKEN }}
-          script: |
-            const template = await github.repos.getContent({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              path: '.github/PULL_REQUEST_TEMPLATE/pull_request_template.md'
-            });
-            const parsedData = extractPRType(template.data.content);
-            core.setOutput('parsedData', JSON.stringify(parsedData));
-
       - name: Add Annotations
-        if: ${{ steps.parse_template.outputs.success }}
         uses: actions/github-script@v7.0.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
-            const parsedData = JSON.parse(core.getOutput('parsedData'));
-            const pull_number = context.payload.pull_request.number;
-            const { data: { assignees } } = await github.rest.issues.get({
-              issue_number: pull_number,
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-
-            let annotations = [];
-            if (!parsedData.prType) {
-              annotations.push({
-                path: "",
-                body: "**Please specify the PR type (Applications or Infrastructure) in the template.**",
-                annotation_level: "warning"
+            if ('${{ needs.parse_template.outputs.PARSED_DATA }}') {
+              const parsedData = JSON.parse('${{ needs.parse_template.outputs.PARSED_DATA }}');
+              const pull_number = context.payload.pull_request.number;
+              const { data: { assignees } } = await github.rest.issues.get({
+                issue_number: pull_number,
+                owner: context.repo.owner,
+                repo: context.repo.repo
               });
-            }
 
-            if (annotations.length > 0) {
-              console.log("Adding annotations:", annotations);
-              // Use github.rest.issues.createComment to add annotations to the PR
-              // (implementation details omitted for brevity)
+              let annotations = [];
+              if (!parsedData.prType) {
+                annotations.push({
+                  path: "",
+                  body: "**Please specify the PR type (Applications or Infrastructure) in the template.**",
+                  annotation_level: "warning"
+                });
+              }
+
+              if (annotations.length > 0) {
+                const annotationsOutput = JSON.stringify(annotations);
+                echo "ANNOTATIONS=${annotationsOutput}" >> $GITHUB_OUTPUT;
+                console.log("Adding annotations:", annotations);
+                // Use github.rest.issues.createComment to add annotations to the PR
+                // (implementation details omitted for brevity)
+              }
+            } else {
+              console.error('No PARSED_DATA output from parse_template job');
             }
