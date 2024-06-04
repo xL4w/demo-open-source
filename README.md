@@ -8,10 +8,10 @@ The repo includes an `index.html` file (so it can render a web page), two GitHub
 
 # Important
 
-As this demo repository is in the development stage, it is important to clean up the workflow runs using the below command
+As this demo repository is in the development stage, it is important to clean up the workflow runs anhd the cahche, using the below one-liner command
 
 ```ShellSession
-for run_id in $(gh run list --limit 100 --json databaseId -q '.[].databaseId'); do gh run delete $run_id --repo CTLLAW-Org/demo-open-source; done
+gh run list --limit 100 --json databaseId -q '.[].databaseId' | xargs -n1 gh run delete --repo CTLLAW-Org/demo-open-source && gh cache list | awk '{print $1}' | xargs -n1 gh cache delete
 ```
 
 After clean-up is performed there should be only one run per workflow in the dashboard, to achieve this it is necessary, to create a last PR and merge it, in the master branch.
