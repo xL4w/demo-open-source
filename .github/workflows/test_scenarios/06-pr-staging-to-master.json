@@ -1,7 +1,0 @@
-{
-    "pull_request": {
-      "base_ref": "master",
-      "head_ref": "staging",
-      "comment": "act pull_request.opened -e '.github/events/06-pr-staging-to-master.json'"
-    }
-   }

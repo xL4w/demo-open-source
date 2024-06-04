@@ -1,7 +1,0 @@
-{
-    "pull_request": {
-      "base_ref": "staging",
-      "head_ref": "master",
-      "comment": "act pull_request.opened -e '.github/events/02-direct-push-staging.json'"
-    }
-   }
