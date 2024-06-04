@@ -1,0 +1,21 @@
+#!/bin/bash
+
+creator=$1
+target_branch=$2
+gh_token=$3
+
+# Authenticate with GitHub CLI
+gh auth login --with-token < "$gh_token"
+
+# Create a temporary branch
+temp_branch=$(date +%s)-${RANDOM}
+git checkout -b "$temp_branch"
+
+# Make a small change
+echo "$temp_branch" >> README.md
+git add .
+git commit -m "Test commit from $temp_branch to $target_branch"
+
+# Push the branch and create a Pull Request
+git push origin "$temp_branch"
+gh pr create --title "Test PR from $temp_branch to $target_branch" --body "This is a test PR." --base "$target_branch" --head "$temp_branch"

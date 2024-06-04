@@ -6,70 +6,42 @@ set -e  # Exit immediately if a command fails
 # Source common helper functions
 source ./.github/workflows/scripts/common_functions.sh
 
+# Define expected reviewers (consistent across tests)
+declare -A expected_reviewers=( 
+  ["Applications"]="GTCrais,CTLLaw"
+  ["Infrastructure"]="mbsimonovic,CTLLaw"
+)
+
 # Mock GitHub environment variables
 export GITHUB_REF=refs/heads/staging
 export GITHUB_BASE_REF=refs/heads/master
 export GITHUB_EVENT_NAME=pull_request
 
-# Adjust PR creator and expected reviewers based on the type of PR 
-# Set to the appropriate user
+# Set PR creator and type 
 export PR_CREATOR="4k4xs4pH1r3"  
-# Set PR body to indicate it's an application change (adjust for infrastructure if needed)
-export PR_BODY="This PR is related to Applications changes."
+export PR_TYPE="Applications" # Adjust for Infrastructure tests if needed
+export PR_BODY="This PR is related to ${PR_TYPE} changes."
 
-# Source the main workflow logic
+# Source the main workflow logic 
 source ../enforce-branch-sequence.yml 
 
-# Run the workflow's logic and capture output
+# Capture workflow output
 output=$(run)
+echo "$output" # Useful for debugging
 
-# Check for the expected success message
-expected_output="Success: The branch sequence is valid."
-if echo "$output" | grep -q "$expected_output"; then
-  echo "✅ PASS: PR from staging to master allowed."
+# --- Assertions ---
 
-  # Fetch PR details to check reviewers 
-  pr_number=$(echo "$output" | grep -oP 'Pull Request number: \K\d+')  
-  reviewers=$(gh pr view $pr_number --json requestedReviewers | jq -r '.requestedReviewers[].login')
+# 1. Check Workflow Success
+assert_contains "$output" "Success: The branch sequence is valid." "PR from staging to master was not allowed by the workflow."
 
-  # Determine the expected reviewers based on PR type
-  if echo "$PR_BODY" | grep -q "Applications"; then
-    expected_reviewers="GTCrais,CTLLaw" 
-  else
-    expected_reviewers="mbsimonovic,CTLLaw"
-  fi
+# 2. Extract PR Number
+pr_number=$(echo "$output" | grep -oP 'Pull Request number: \K\d+')  
 
-  # Verify that the correct reviewers are assigned
-  if echo "$reviewers" | grep -q "$expected_reviewers"; then
-    echo "✅ PASS: Correct reviewer(s) ($expected_reviewers) assigned to PR."
-  else
-    echo "❌ FAIL: Incorrect reviewers assigned to PR. Actual reviewers: $reviewers"
-    exit 1
-  fi
+# 3. Verify Correct Reviewers Assigned
+verify_pr_reviewers "$pr_number" "${expected_reviewers[$PR_TYPE]}" 
 
+# 4. Approve and Merge the PR (Simulate approvals from both required reviewers)
+approve_and_merge_pr "$pr_number" "GTCrais" 
+approve_and_merge_pr "$pr_number" "CTLLaw" 
 
-  # Add Approvals for the PR (Replace placeholders with actual user logins)
-  # (Replace with actual API calls or GitHub CLI commands to add approvals)
-  gh pr review $pr_number --approve --body "Approved" --as "GTCrais" 
-  gh pr review $pr_number --approve --body "Approved" --as "CTLLaw" 
-
-  # Attempt to merge the PR and capture the exit code (0 for success, 1 for failure)
-  set +e # Temporarily disable exit on error to capture the merge result
-  merge_output=$(gh pr merge $pr_number --auto --squash)  # Or your preferred merge method
-  merge_status=$?
-  set -e # Re-enable exit on error
-
-  if [ $merge_status -eq 0 ]; then
-      echo "✅ PASS: PR successfully merged after approvals."
-  else
-      echo "❌ FAIL: PR could not be merged even after approvals."
-      echo "Merge output: $merge_output"
-      exit 1
-  fi
-
-else
-  echo "❌ FAIL: PR from staging to master was not allowed."
-  echo "Unexpected output:"
-  echo "$output"
-  exit 1  # Indicate failure to GitHub Actions
-fi
+echo "✅ PASS: Test Case 06 Successful"
