@@ -1,0 +1,7 @@
+{
+    "pull_request": {
+      "base_ref": "aws-dev",
+      "head_ref": "aws-dev",
+      "comment": "act pull_request.opened -e '.github/events/04-pr-any-to-aws-dev.json'"
+    }
+   }

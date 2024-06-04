@@ -1,0 +1,10 @@
+{
+    "pull_request": {
+      "base_ref": "staging",
+      "head_ref": "feature/new-feature",
+      "comment": "act pull_request.opened -e '.github/events/07-pr-creation-unauthorized.json'"
+    },
+    "sender": {
+      "login": "unauthorized-user"
+    }
+  }
