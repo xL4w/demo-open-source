@@ -1,7 +1,0 @@
-{
-  "pull_request": {
-    "base_ref": "master",
-    "head_ref": "master",
-    "comment": "act pull_request.opened -e '.github/events/01-direct-push-master.json'"
-  }
- }

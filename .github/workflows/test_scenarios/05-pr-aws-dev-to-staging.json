@@ -1,7 +1,0 @@
-{
-    "pull_request": {
-      "base_ref": "staging",
-      "head_ref": "aws-dev",
-      "comment": "act pull_request.opened -e '.github/events/05-pr-aws-dev-to-staging.json'"
-    }
-   }

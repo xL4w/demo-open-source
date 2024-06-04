@@ -1,9 +1,0 @@
-{
-    "review": {
-      "state": "approved",
-    "comment": "act pull_request_review.submitted -e '.github/events/08-approval-unauthorized.json'"  
-    },
-    "sender": {
-      "login": "unauthorized-user"
-    }
-  }
