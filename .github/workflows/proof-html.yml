@@ -11,6 +11,6 @@ jobs:
         with:
           egress-policy: audit
 
-      - uses: anishathalye/proof-html@v2.1.2
+      - uses: anishathalye/proof-html@v2.1.3
         with:
           directory: ./
