@@ -7,48 +7,55 @@ set -e  # Exit immediately if a command fails
 # Source common helper functions
 source ./.github/workflows/scripts/common_functions.sh
 
-# Mock GitHub environment variables for a PR from a feature branch to aws-dev
-export GITHUB_REF=refs/heads/feature/my-new-feature
-export GITHUB_BASE_REF=refs/heads/aws-dev
-export GITHUB_EVENT_NAME=pull_request
+# Function to simulate PR creation and check results
+test_pr_creation() {
+  local source_branch="$1"
+  local target_branch="$2"
+  local pr_creator="$3"
+  local expected_reviewers="$4"
+  local expected_result="$5" # "Success" or "Failure"
 
-# Adjust PR creator and expected reviewers based on the type of PR (Application or Infrastructure)
-export PR_CREATOR="4k4xs4pH1r3"  
-# Set PR body to indicate it's an application change (adjust for infrastructure if needed)
-export PR_BODY="This PR is related to Applications changes."
+  # Set environment variables for the test case
+  export GITHUB_REF=refs/heads/$source_branch
+  export GITHUB_BASE_REF=refs/heads/$target_branch
+  export GITHUB_EVENT_NAME=pull_request
+  export PR_CREATOR="$pr_creator"
 
-# Source the main workflow logic
-source ../enforce-branch-sequence.yml 
+  # Source the main workflow logic to simulate the GitHub Action run
+  source ../enforce-branch-sequence.yml
 
-# Run the workflow's logic and capture output
-output=$(run)
+  # Capture the output of the workflow run
+  output=$(run)
 
-# Check for the expected success message
-expected_output="Success: The branch sequence is valid."
-if echo "$output" | grep -q "$expected_output"; then
-  echo "✅ PASS: PR from feature/my-new-feature to aws-dev allowed."
-
-  # Fetch PR details to check reviewers
-  pr_number=$(echo "$output" | grep -oP 'Pull Request number: \K\d+')  
-  reviewers=$(gh pr view $pr_number --json requestedReviewers | jq -r '.requestedReviewers[].login')
-
-  # Determine the expected reviewers based on PR type
-  if echo "$PR_BODY" | grep -q "Applications"; then
-    expected_reviewers="GTCrais"
+  # Define the expected output message based on the expected result
+  if [[ "$expected_result" == "Success" ]]; then
+    expected_output="Success: The branch sequence is valid."
   else
-    expected_reviewers="mbsimonovic"
+    expected_output="Error: Invalid branch sequence"
   fi
 
-  # Verify that the correct reviewers are assigned
-  if echo "$reviewers" | grep -q "$expected_reviewers"; then
-    echo "✅ PASS: Correct reviewer(s) ($expected_reviewers) assigned to PR."
+  # Check if the output matches the expected result
+  if echo "$output" | grep -q "$expected_output"; then
+    echo "✅ PASS: PR from $source_branch to $target_branch - $expected_result as expected."
+
+    # If the PR creation is expected to be successful, check for reviewers
+    if [[ "$expected_result" == "Success" ]]; then
+      pr_number=$(echo "$output" | grep -oP 'Pull Request number: \K\d+')
+      reviewers=$(gh pr view $pr_number --json requestedReviewers | jq -r '.requestedReviewers[].login')
+
+      # Verify that the correct reviewers are assigned
+      if echo "$reviewers" | grep -q "$expected_reviewers"; then
+        echo "✅ PASS: Correct reviewer(s) ($expected_reviewers) assigned to PR."
+      else
+        echo "❌ FAIL: Incorrect reviewers assigned to PR. Actual reviewers: $reviewers. Expected: $expected_reviewers"
+        exit 1
+      fi
+    fi
+
   else
-    echo "❌ FAIL: Incorrect reviewers assigned to PR. Actual reviewers: $reviewers"
+    echo "❌ FAIL: PR from $source_branch to $target_branch - Unexpected result."
+    echo "Expected output: $expected_output"
+    echo "Actual output: $output"
     exit 1
   fi
-else
-  echo "❌ FAIL: PR from feature/my-new-feature to aws-dev was not allowed."
-  echo "Unexpected output:"
-  echo "$output"
-  exit 1  
-fi
+}

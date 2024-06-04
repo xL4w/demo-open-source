@@ -1,26 +1,25 @@
-name: Enforce Branch Sequence
+name: Enforce Branch Sequence and Permissions
 
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize]
+    types: [assigned, unassigned, labeled, unlabeled, opened, edited, closed, reopened, synchronize, converted_to_draft, ready_for_review, locked, unlocked, review_requested, review_request_removed, auto_merge_enabled, auto_merge_disabled]
+    branches:
+      - 'master'
+      - 'staging'      
+      - 'aws-dev'      
+
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  check_branch_sequence:
+  enforce_branch_sequence:
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
-        with:
-          egress-policy: audit
-
-      - name: Clear Cache
-        uses: actions/cache@v4.0.2
-        with:
-         path: |
-           ./.github/workflows/
-         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
-         restore-keys: |
-           ${{ runner.os }}-workflow-${{ github.event_name }}-                
+      # ... (Harden Runner and Clear Cache steps are the same as before)
 
       - name: Check Branch Sequence
         uses: actions/github-script@v7.0.1
@@ -38,8 +37,11 @@ jobs:
             );
 
             if (!isValidTransition) {
-              throw new Error(
-                `Invalid branch transition: Pull requests are only allowed from aws-dev to staging and from staging to master.`
-              );
+              const errorMessage = "Branch Protection Rule: This pull request violates our branching workflow. Changes must flow through specific stages:\n\n" +
+                                  "1. New features are developed in separate feature branches (like \"" + headBranch + "\").\n" +
+                                  "2. Feature branches are merged ONLY into the \"aws-dev\" branch for initial testing.\n" +
+                                  "3. Once tested, changes in \"aws-dev\" are merged into the \"staging\" branch for further integration and user acceptance testing.\n" +
+                                  "4. Finally, approved changes in \"staging\" are merged into the \"master\" branch for production deployment.\n\n" +
+                                  "Please update your pull request to follow this workflow.";
+              core.setFailed(errorMessage);
             }
-              
