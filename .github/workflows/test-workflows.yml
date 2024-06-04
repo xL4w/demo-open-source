@@ -3,82 +3,127 @@ name: Test Workflows
 on:
   push:
     branches:
-      - test-workflows
+      - master
+      - staging
+      - aws-dev
+  pull_request:
+    branches:
+      - master
+      - staging
+      - aws-dev
+
+env:
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  ALLOWED_REVIEWERS: 'GTCrais,CTLLaw'
+  ALLOWED_TARGET_BRANCH_USERS: 'GTCrais,CTLLaw'
 
 jobs:
+  # Test scenarios 1, 2, 3: Direct pushes to protected branches should fail
   test-direct-push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         branch: [master, staging, aws-dev]
-        scriptPath: ["01-direct-push-master.sh", "02-direct-push-staging.sh", "03-direct-push-aws-dev.sh"]
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0
-        with:
-          egress-policy: audit
-
-      - name: Clear Cache
-        uses: actions/cache@v4.0.2
-        with:
-         path: |
-           ./.github/workflows/
-         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
-         restore-keys: |
-           ${{ runner.os }}-workflow-${{ github.event_name }}-                
-
       - name: Checkout code
         uses: actions/checkout@v4.1.6
-      - name: Run test script
+      - name: Attempt direct push
         run: |
-          chmod +x scripts/${{ matrix.scriptPath }}
-          ./scripts/${{ matrix.scriptPath }} ${{ matrix.branch }}
+          git config user.name "GitHub Actions Bot"
+          git config user.email "github-actions@github.com"
+          echo "Some change" >> README.md
+          git add .
+          git commit -m "Test commit"
+          git push origin HEAD:${{ matrix.branch }}
+        continue-on-error: true
+      - name: Check for failure
+        run: |
+          echo "Direct push to ${{ matrix.branch }} should have failed."
+          exit 1
+        if: ${{ success() }}
 
+  # Test scenario 4: Enforce PR sequence (any->aws-dev->staging->master)
   test-pr-sequence:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        case: [
-          { source: 'test-branch', target: 'aws-dev', script: '04-pr-any-to-aws-dev.sh' },
-          { source: 'aws-dev', target: 'staging', script: '05-pr-aws-dev-to-staging.sh' },
-          { source: 'staging', target: 'master', script: '06-pr-staging-to-master.sh' },
-        ]
+        case: 
+          - { source: 'test-branch', target: 'aws-dev', shouldFail: false }
+          - { source: 'aws-dev', target: 'staging', shouldFail: false }
+          - { source: 'staging', target: 'master', shouldFail: false }
+          - { source: 'test-branch', target: 'staging', shouldFail: true }
+          - { source: 'test-branch', target: 'master', shouldFail: true }
+          - { source: 'aws-dev', target: 'master', shouldFail: true }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.1.6
-      - name: Run test script
+      - name: Create and merge PR
         run: |
-          chmod +x scripts/${{ matrix.case.script }}
-          ./scripts/${{ matrix.case.script }} ${{ matrix.case.source }} ${{ matrix.case.target }}
+          ./scripts/create-and-merge-pr.sh ${{ matrix.case.source }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+        if: ${{ !matrix.case.shouldFail }}
+      - name: Attempt and fail PR creation/merge
+        run: |
+          ! ./scripts/create-and-merge-pr.sh ${{ matrix.case.source }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+        if: ${{ matrix.case.shouldFail }}
 
-  test-user-permissions:
+  # Test scenarios 5, 6, 9: Automatic reviewers, restricted reviewers, aws-dev approval
+  test-pr-creation-and-review:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        case: [
-          { user: 'GTCrais', script: '07-pr-creation-gtcrais.sh' },
-          { user: 'CTLLaw', script: '08-pr-creation-ctllaw.sh' },
-          { user: 'mbsimonovic', script: '07-pr-creation-gtcrais.sh' }, # Same script as GTCrais for testing purpose
-          { user: 'mbsimonovic', script: '08-pr-creation-ctllaw.sh' }, # Same script as CTLLaw for testing purpose
-        ]
+        case:
+          - { creator: 'GTCrais', target: 'aws-dev' }
+          - { creator: 'CTLLaw', target: 'aws-dev' }
+          - { creator: 'mbsimonovic', target: 'aws-dev' } 
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4.1.6
+        - name: Create PR 
+          run: |
+            ./scripts/create-pr.sh ${{ matrix.case.creator }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+        - name: Check for automatic reviewers
+          run: |
+            ./scripts/check-reviewers.sh ${{ env.ALLOWED_REVIEWERS }} ${{ env.GH_TOKEN }}
+        - name: Approve and merge PR (if allowed)
+          if: ${{ matrix.case.creator == 'GTCrais' || matrix.case.creator == 'CTLLaw' }}
+          run: |
+            ./scripts/approve-and-merge-pr.sh ${{ matrix.case.creator }} ${{ env.GH_TOKEN }} 
+
+  # Test scenarios 7, 8: User restrictions on staging/master PRs and approvals
+  test-protected-branch-restrictions:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        case: 
+          - { user: 'GTCrais', target: 'staging', shouldFail: false }
+          - { user: 'CTLLaw', target: 'staging', shouldFail: false }
+          - { user: 'mbsimonovic', target: 'staging', shouldFail: true } 
+          - { user: 'mbsimonovic', target: 'master', shouldFail: true }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.1.6
-      - name: Run test script
+      - name: Create and merge PR (if allowed)
         run: |
-          chmod +x scripts/${{ matrix.case.script }}
-          ./scripts/${{ matrix.case.script }} ${{ matrix.case.user }}
+          ./scripts/create-and-merge-pr.sh ${{ matrix.case.user }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+        if: ${{ !matrix.case.shouldFail }}
+      - name: Attempt and fail PR creation/merge
+        run: |
+          ! ./scripts/create-and-merge-pr.sh ${{ matrix.case.user }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+        if: ${{ matrix.case.shouldFail }}
 
-  test-reviewer-permissions:
+  # Test scenario 10: Reviewer self-adding and restrictions
+  test-reviewer-management:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.1.6
-      - name: Run test script for adding invalid reviewers
+      - name: Create PR (any user can create on aws-dev)
         run: |
-          chmod +x scripts/09-add-invalid-reviewer.sh
-          ./scripts/09-add-invalid-reviewer.sh
-      - name: Run test script for approval and merge permissions
+          ./scripts/create-pr.sh anyuser aws-dev ${{ env.GH_TOKEN }} 
+      - name: Attempt to add invalid reviewer
         run: |
-          chmod +x scripts/10-approval-merge-permissions.sh
-          ./scripts/10-approval-merge-permissions.sh
+          ! ./scripts/add-reviewer.sh someotheruser ${{ env.GH_TOKEN }}
+      - name: Add allowed reviewers
+        run: |
+          ./scripts/add-reviewer.sh ${{ env.ALLOWED_REVIEWERS }} ${{ env.GH_TOKEN }}
+          

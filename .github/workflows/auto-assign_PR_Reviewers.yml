@@ -5,12 +5,11 @@ on:
     types: [assigned, unassigned, labeled, unlabeled, opened, edited, closed, reopened, synchronize, converted_to_draft, ready_for_review, locked, unlocked, review_requested, review_request_removed, auto_merge_enabled, auto_merge_disabled]
     branches:
       - 'staging'
-      - 'master'    
+      - 'master'
 
 permissions:
   contents: read
   pull-requests: write
- 
 
 jobs:
   auto-assign-reviewers:  # Job to assign reviewers based on PR type
@@ -26,9 +25,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-              github.rest.pulls.requestReviewers({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number,
-                reviewers: ['GTCrais', 'CTLLaw']
-              });
+            github.pullRequests.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              reviewers: ['GTCrais', 'CTLLaw'] 
+            })
+            .then(() => {
+              console.log('Reviewers successfully assigned.');
+            })
+            .catch(error => {
+              core.setFailed(`Error assigning reviewers: ${error.message}`);
+            });
+            

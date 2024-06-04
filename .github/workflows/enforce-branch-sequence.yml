@@ -1,11 +1,22 @@
-name: Enforce Branch Sequence
+name: Enforce Branch Sequence and Permissions
 
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize]
+    types: [assigned, unassigned, labeled, unlabeled, opened, edited, closed, reopened, synchronize, converted_to_draft, ready_for_review, locked, unlocked, review_requested, review_request_removed, auto_merge_enabled, auto_merge_disabled]
+    branches:
+      - 'master'
+      - 'staging'      
+      - 'aws-dev'      
+
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  check_branch_sequence:
+  enforce_branch_sequence:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
@@ -13,33 +24,12 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Clear Cache
-        uses: actions/cache@v4.0.2
-        with:
-         path: |
-           ./.github/workflows/
-         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
-         restore-keys: |
-           ${{ runner.os }}-workflow-${{ github.event_name }}-                
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Check Branch Sequence
-        uses: actions/github-script@v7.0.1
-        with:
-          script: |
-            const headBranch = context.payload.pull_request.head.ref;
-            const baseBranch = context.payload.pull_request.base.ref;
-            const allowedTransitions = [
-              ['aws-dev', 'staging'],
-              ['staging', 'master']
-            ];
-
-            const isValidTransition = allowedTransitions.some(
-              ([source, target]) => headBranch === source && baseBranch === target
-            );
-
-            if (!isValidTransition) {
-              throw new Error(
-                `Invalid branch transition: Pull requests are only allowed from aws-dev to staging and from staging to master.`
-              );
-            }
-              
+      - name: Enforce Branch Sequence
+        run: |
+          source ./scripts/common_functions.sh
+          enforce_branch_sequence "$GITHUB_BASE_REF" "$GITHUB_HEAD_REF"
+        env:
+          ALLOWED_REVIEWERS: "GTCrais,CTLLaw"
