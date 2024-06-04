@@ -22,34 +22,9 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const pull_number = context.payload.pull_request.number;
-            const body = context.payload.pull_request.body || ""; 
-            const baseRef = context.payload.pull_request.base.ref;
-            const assignees = [];
-
-            // Check for PR type (Application or Infrastructure)
-            const isApplicationPR = body.toLowerCase().includes("applications");
-            const isInfrastructurePR = body.toLowerCase().includes("infrastructure");
-
-            // Assign reviewers based on PR type and target branch
-            if (isApplicationPR) {
-              assignees.push("GTCrais");
-            }
-
-            if (isInfrastructurePR) {
-              assignees.push("mbsimonovic");
-            }
-
-            if (baseRef === "master") {
-              assignees.push("CTLLaw"); 
-            }
-
-            // Assign the reviewers
-            if (assignees.length > 0) {
-              github.rest.issues.addAssignees({
-                issue_number: pull_number,
+              github.rest.pulls.requestReviewers({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                assignees: assignees,
+                pull_number: context.issue.number,
+                reviewers: ['GTCrais', 'CTLLaw']
               });
-            }
