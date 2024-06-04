@@ -1,4 +1,6 @@
-# Welcome to your organization's demo repository
+[![CodeQL](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/github-code-scanning/codeql) [![Dependency Review](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/dependency-review.yml) [![Proof HTML](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/proof-html.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/proof-html.yml) [![Auto Assign PR Creator](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Creator.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Creator.yml) [![Auto Assign PR Reviewers](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Reviewers.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Reviewers.yml) [![Checkov Security Scan](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/checkov.yml/badge.svg)](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/checkov.yml) [![Enforce Branch Sequence and Permissions](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/enforce-branch-sequence.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/enforce-branch-sequence.yml) [![Snyk Infrastructure as Code](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/snyk-infrastructure.yml/badge.svg)](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/snyk-infrastructure.yml)
+
+# Welcome to CTL Law organization's demo open source repository, using GitHub Enterprise, with GitHub Advanced Security Enabled.   
 
 This code repository (or "repo") is designed to demonstrate the best GitHub offers with the least noise.
 
@@ -6,7 +8,7 @@ The repo includes an `index.html` file (so it can render a web page), two GitHub
 
 # Important
 
-As this demo repository is in the development stage, it is important to clean up the workflow runs. We recommend creating a final PR, merging it into the master branch, and then cleaning up.
+As this demo repository is in the development stage, cleaning up the workflow runs is important. We recommend creating a final PR, merging it into the master branch, and then cleaning up.
 
 To clean up the workflow runs, use the below command:
 
@@ -14,7 +16,7 @@ To clean up the workflow runs, use the below command:
 gh run list --limit 100 --json databaseId -q '.[].databaseId' | xargs -n1 gh run delete --repo CTLLAW-Org/demo-open-source && gh cache list | awk '{print $1}' | xargs -n1 gh cache delete
 ```
 
-After clean-up is performed, there should be only one run per workflow in the dashboard.
+After clean-up, there should be only one run per workflow in the dashboard.
 
 This allows us to effectively review only the last run of each workflow to evaluate the current progress and identify when we can stop to clean up the workflow runs.
 
@@ -60,7 +62,7 @@ This solution implements a robust GitHub Guardian setup utilizing GitHub Actions
 * `aws-dev` to `staging`
 * `staging` to `master`
 * **Automated Reviewer Assignment:** `@GTCrais` and `@CTLLaw` are automatically assigned as reviewers to all PRs, ensuring consistent code review coverage.
-* **Restricted Approvals and Merges:** Only `@GTCrais` and `@CTLLaw` have the authority to approve and merge PRs, enhancing security and control.
+* **Restricted Approvals and Merges:** Only `@GTCrais` and `@CTLLaw` can approve and merge PRs, enhancing security and control.
 * **Automated Testing:** A suite of test scripts, executed through GitHub Actions, continuously validates the effectiveness of the implemented guardrails.
 
 ### Implementation Details:
@@ -73,7 +75,7 @@ The following settings are applied to `master`, `staging`, and `aws-dev` branche
 * 1 (for `aws-dev`)
 * 2 (for `staging` and `master`)
 * **Dismiss stale pull request approvals when new commits are pushed:** Enabled
-* **Require status checks to pass before merging:** Enabled (add your specific checks)
+* **Require status checks to pass before merging:** Enabled 
 * **Require branches to be up to date before merging:** Enabled
 * **Restrict who can push to matching branches:** Enabled, limited to `GTCrais` and `CTLLaw` (except `aws-dev`)
 * **Require linear history:** Enabled (optional, prevents merge commits)
@@ -110,3 +112,4 @@ The `scripts` directory contains shell scripts used by the test suite:
 * **Placeholders:** Remember to replace placeholders like `@GTCrais`, `@CTLLaw`, and branch names with your actual usernames and branch names.
 * **Regular Review:** Periodically review and update your GitHub Guardian configuration to adapt to changing requirements and evolving security best practices.
 * **Additional Security:** Consider implementing additional security measures like secret scanning, dependency vulnerability analysis, and code security audits.
+* 
