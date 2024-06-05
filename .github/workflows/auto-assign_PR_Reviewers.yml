@@ -2,7 +2,7 @@ name: Auto Assign PR Reviewers
 
 on:
   pull_request_target:
-    types: [opened, reopened, ready_for_review, synchronize, converted_to_draft]
+    types: [assigned, unassigned, labeled, unlabeled, opened, edited, closed, reopened, synchronize, converted_to_draft, ready_for_review, locked, unlocked, review_requested, review_request_removed, auto_merge_enabled, auto_merge_disabled]
     branches:
       - 'staging'
       - 'master'
@@ -16,17 +16,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        uses: step-security/harden-runner@v2.8.0 # v2.8.0
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+        uses: actions/checkout@v4.1.6 # v4.1.6
         with:
-          fetch-depth: 0 # Fetch full git history to ensure accurate pull request context
+          fetch-depth: 0 
 
       - name: Check if Reviewers Already Assigned
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@v7.0.1 # v7.0.1
         id: check-reviewers
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -40,11 +40,11 @@ jobs:
             const existingReviewers = requested_reviewers.map(reviewer => reviewer.login);
             const reviewersToAdd = ['GTCrais', 'CTLLaw'].filter(reviewer => !existingReviewers.includes(reviewer));
 
-            return reviewersToAdd.length > 0 ? reviewersToAdd : null; 
+            return reviewersToAdd.length > 0 ? JSON.stringify(reviewersToAdd) : 'null';
 
       - name: Auto Assign Reviewers (if needed)
         if: steps.check-reviewers.outputs.result != 'null'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
