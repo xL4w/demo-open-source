@@ -1,6 +1,10 @@
+#!/bin/bash
 source_branch=$1
 target_branch=$2
 gh_token=$3
+
+git config --global user.email "tomislav@tmweb.dev"
+git config --global user.name "GTCrais"
 
 # Create a temporary branch
 temp_branch=$(date +%s)-${RANDOM}
@@ -12,10 +16,11 @@ git add .
 git commit -m "Test commit from $temp_branch to $target_branch"
 
 # Push the branch and create a Pull Request
-git push origin "$temp_branch":"$target_branch"
+git push origin "$temp_branch"
+pr_url=$(gh pr create --title "Test PR from $temp_branch to $target_branch" --body "This is an automated test PR" --base "$target_branch" --head "$temp_branch")
 
-# Get the Pull Request number
-pr_number=$(gh pr list --head "$temp_branch" --json number -q '.[].number')
+# Extract the pull request number from the URL
+pr_number=$(echo "$pr_url" | grep -o '[0-9]\+')
 
 # Merge the Pull Request
 gh pr merge "$pr_number" --merge --delete-branch
