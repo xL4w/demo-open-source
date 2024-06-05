@@ -19,6 +19,7 @@ env:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   # Test scenarios 1, 2, 3: Direct pushes to protected branches should fail
