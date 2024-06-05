@@ -15,6 +15,16 @@ jobs:
   auto-assign-reviewers:
     runs-on: ubuntu-latest
     steps:
+
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2
+        with:
+         path: |
+           ./.github/workflows/
+         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+         restore-keys: |
+           ${{ runner.os }}-workflow-${{ github.event_name }}-             
+                 
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
         with:
@@ -44,7 +54,7 @@ jobs:
 
       - name: Auto Assign Reviewers (if needed)
         if: steps.check-reviewers.outputs.result != 'null'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v7.0.1 # v7.0.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
