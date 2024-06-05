@@ -30,9 +30,6 @@ jobs:
       matrix:
         branch: [master, staging, aws-dev]
     steps: 
-      - name: Make scripts executable
-        run: |
-          find .github/workflows/scripts -type f -name "*.sh" -exec chmod +x {} \; 
       - name: Clear Cache
         uses: actions/cache@v4.0.2
         with:
@@ -40,7 +37,14 @@ jobs:
            ./.github/workflows/
          key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
          restore-keys: |
-           ${{ runner.os }}-workflow-${{ github.event_name }}-             
+           ${{ runner.os }}-workflow-${{ github.event_name }}-      
+                 
+      - name: Checkout code
+        uses: actions/checkout@v4.1.6 # v4.1.6
+
+      - name: Make scripts executable
+        run: |
+          find .github/workflows/scripts -type f -name "*.sh" -exec chmod +x {} \;     
       
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
