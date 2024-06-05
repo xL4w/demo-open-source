@@ -121,7 +121,7 @@ jobs:
         case:
           - { creator: 'GTCrais', target: 'aws-dev' }
           - { creator: 'CTLLaw', target: 'aws-dev' }
-          - { creator: 'mbsimonovic', target: 'aws-dev' }
+          - { creator: '4k4xs4pH1r3-2', target: 'aws-dev' }
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
@@ -152,8 +152,8 @@ jobs:
         case:
           - { user: 'GTCrais', target: 'staging', shouldFail: false }
           - { user: 'CTLLaw', target: 'staging', shouldFail: false }
-          - { user: 'mbsimonovic', target: 'staging', shouldFail: true }
-          - { user: 'mbsimonovic', target: 'master', shouldFail: true }
+          - { user: '4k4xs4pH1r3-2', target: 'staging', shouldFail: true }
+          - { user: '4k4xs4pH1r3-2', target: 'master', shouldFail: true }
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
