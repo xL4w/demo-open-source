@@ -5,7 +5,9 @@ on:
     types: [opened, reopened, synchronize]
     branches:
       - 'staging'
-      - 'master'    
+      - 'master'
+      - 'aws-dev'      
+      
 
 permissions:
   contents: read
