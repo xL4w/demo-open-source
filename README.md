@@ -51,7 +51,6 @@ This solution implements a robust GitHub Guardian setup utilizing GitHub Actions
 │ ├── create-pr.sh
 │ └── enforce-branch-sequence-test.sh
 └── test-workflows.yml
-
 ```
 
 ### Core Principles:
