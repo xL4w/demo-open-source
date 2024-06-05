@@ -75,11 +75,7 @@ jobs:
           chmod +x ./.github/workflows/scripts/08-pr-creation-ctllaw.sh
           chmod +x ./.github/workflows/scripts/09-add-invalid-reviewer.sh
           chmod +x ./.github/workflows/scripts/10-approval-merge-permissions.sh
-          chmod +x ./.github/workflows/scripts/add-reviewer.sh
-          chmod +x ./.github/workflows/scripts/approve-and-merge-pr.sh
           chmod +x ./.github/workflows/scripts/check-reviewers.sh
-          chmod +x ./.github/workflows/scripts/create-and-merge-pr.sh
-          chmod +x ./.github/workflows/scripts/create-pr.sh
 
       - name: Checkout code
         uses: actions/checkout@v4.1.6 # v4.1.6
@@ -120,11 +116,11 @@ jobs:
       - name: Create and merge PR (Success case)
         if: ${{ !matrix.case.shouldFail }}
         run: |
-          ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.source }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+          chmod +x ./.github/workflows/scripts/create-and-merge-pr.sh && ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.source }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
       - name: Attempt and fail PR creation/merge (Failure case)
         if: ${{ matrix.case.shouldFail }}
         run: |
-          ! ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.source }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+          ! chmod +x ./.github/workflows/scripts/create-and-merge-pr.sh && ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.source }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
   # Test scenarios 5, 6, 9: Automatic reviewers, restricted reviewers, aws-dev approval
   test-pr-creation-and-review:
     runs-on: ubuntu-latest
@@ -144,14 +140,14 @@ jobs:
         uses: actions/checkout@v4.1.6 # v4.1.6
       - name: Create PR
         run: |
-          ./.github/workflows/scripts/create-pr.sh ${{ matrix.case.creator }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+          chmod +x ./.github/workflows/scripts/create-pr.sh && ./.github/workflows/scripts/create-pr.sh ${{ matrix.case.creator }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
       - name: Check for automatic reviewers
         run: |
           ./.github/workflows/scripts/check-reviewers.sh ${{ env.ALLOWED_REVIEWERS }} ${{ env.GH_TOKEN }}
       - name: Approve and merge PR (if allowed)
         if: ${{ matrix.case.creator == 'GTCrais' || matrix.case.creator == 'CTLLaw' }}
         run: |
-          ./.github/workflows/scripts/approve-and-merge-pr.sh ${{ matrix.case.creator }} ${{ env.GH_TOKEN }}
+          chmod +x ./.github/workflows/scripts/approve-and-merge-pr.sh && ./.github/workflows/scripts/approve-and-merge-pr.sh ${{ matrix.case.creator }} ${{ env.GH_TOKEN }}
   # Test scenarios 7, 8: User restrictions on staging/master PRs and approvals
   test-protected-branch-restrictions:
     runs-on: ubuntu-latest
@@ -173,11 +169,11 @@ jobs:
       - name: Create and merge PR (if allowed)
         if: ${{ !matrix.case.shouldFail }}
         run: |
-          ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.user }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+          chmod +x ./.github/workflows/scripts/create-and-merge-pr.sh && ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.user }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
       - name: Attempt and fail PR creation/merge (Failure case)
         if: ${{ matrix.case.shouldFail }}
         run: |
-          ! ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.user }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+          ! chmod +x ./.github/workflows/scripts/create-and-merge-pr.sh && ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.user }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
   # Test scenario 10: Reviewer self-adding and restrictions
   test-reviewer-management:
     runs-on: ubuntu-latest
@@ -194,7 +190,7 @@ jobs:
           ./.github/workflows/scripts/create-pr.sh anyuser aws-dev ${{ env.GH_TOKEN }}
       - name: Attempt to add invalid reviewer
         run: |
-          ! ./.github/workflows/scripts/add-reviewer.sh someotheruser ${{ env.GH_TOKEN }}
+          ! chmod +x ./.github/workflows/scripts/add-reviewer.sh && ./.github/workflows/scripts/add-reviewer.sh someotheruser ${{ env.GH_TOKEN }}
       - name: Add allowed reviewers
         run: |
-          ./.github/workflows/scripts/add-reviewer.sh ${{ env.ALLOWED_REVIEWERS }} ${{ env.GH_TOKEN }}
+          chmod +x ./.github/workflows/scripts/add-reviewer.sh && ./.github/workflows/scripts/add-reviewer.sh ${{ env.ALLOWED_REVIEWERS }} ${{ env.GH_TOKEN }}
