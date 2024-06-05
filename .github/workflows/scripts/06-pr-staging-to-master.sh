@@ -8,8 +8,8 @@ source ./.github/workflows/scripts/common_functions.sh
 
 # Define expected reviewers (consistent across tests)
 declare -A expected_reviewers=( 
-  ["Applications"]="GTCrais,CTLLaw"
-  ["Infrastructure"]="mbsimonovic,CTLLaw"
+  ["Applications"]="4k4xs4pH1r3-2,CTLLaw"
+  ["Infrastructure"]="4k4xs4pH1r3-2,CTLLaw"
 )
 
 # Mock GitHub environment variables
@@ -41,7 +41,7 @@ pr_number=$(echo "$output" | grep -oP 'Pull Request number: \K\d+')
 verify_pr_reviewers "$pr_number" "${expected_reviewers[$PR_TYPE]}" 
 
 # 4. Approve and Merge the PR (Simulate approvals from both required reviewers)
-approve_and_merge_pr "$pr_number" "GTCrais" 
+approve_and_merge_pr "$pr_number" "4k4xs4pH1r3-2" 
 approve_and_merge_pr "$pr_number" "CTLLaw" 
 
 echo "✅ PASS: Test Case 06 Successful"
