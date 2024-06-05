@@ -17,16 +17,26 @@ env:
   ALLOWED_REVIEWERS: 'GTCrais,CTLLaw'
   ALLOWED_TARGET_BRANCH_USERS: 'GTCrais,CTLLaw'
 
+permissions:
+  contents: read
+
 jobs:
   # Test scenarios 1, 2, 3: Direct pushes to protected branches should fail
   test-direct-push:
+    permissions:
+      contents: write  # for Git to git push
     runs-on: ubuntu-latest
     strategy:
       matrix:
         branch: [master, staging, aws-dev]
     steps: 
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - name: Attempt direct push
         run: |
           git config user.name "GitHub Actions Bot"
@@ -54,8 +64,13 @@ jobs:
           - { source: 'test-branch', target: 'master', shouldFail: true }
           - { source: 'aws-dev', target: 'master', shouldFail: true }
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - name: Create and merge PR (Success case)
         if: ${{ !matrix.case.shouldFail }}
         run: |
@@ -74,8 +89,13 @@ jobs:
           - { creator: 'CTLLaw', target: 'aws-dev' }
           - { creator: 'mbsimonovic', target: 'aws-dev' }
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - name: Create PR
         run: |
           ./.github/workflows/scripts/create-pr.sh ${{ matrix.case.creator }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
@@ -97,8 +117,13 @@ jobs:
           - { user: 'mbsimonovic', target: 'staging', shouldFail: true }
           - { user: 'mbsimonovic', target: 'master', shouldFail: true }
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - name: Create and merge PR (if allowed)
         if: ${{ !matrix.case.shouldFail }}
         run: |
@@ -111,8 +136,13 @@ jobs:
   test-reviewer-management:
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f086349bfa2bd1361f7909c78558e816508cdc10 # v2.8.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - name: Create PR (any user can create on aws-dev)
         run: |
           ./.github/workflows/scripts/create-pr.sh anyuser aws-dev ${{ env.GH_TOKEN }}
