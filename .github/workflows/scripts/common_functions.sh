@@ -172,10 +172,10 @@ run_pr_creation_test_case() {
   pr_url=$(gh pr view "$pr_number" --json url --jq '.url')
   reviewers=$(get_pull_request_reviewers "$pr_url")
 
-  if [[ "$reviewers" == *"GTCrais"* ]] && [[ "$reviewers" == *"CTLLaw"* ]]; then
-    echo "✅ PASS: @GTCrais and @CTLLaw correctly added as reviewers."
+  if [[ "$reviewers" == *"4k4xs4pH1r3-2"* ]] && [[ "$reviewers" == *"CTLLaw"* ]]; then
+    echo "✅ PASS: @4k4xs4pH1r3-2 and @CTLLaw correctly added as reviewers."
   else 
-    echo "❌ FAIL: @GTCrais and @CTLLaw not automatically added as reviewers."
+    echo "❌ FAIL: @4k4xs4pH1r3-2 and @CTLLaw not automatically added as reviewers."
     echo "Current reviewers: $reviewers"
     exit 1
   fi 
