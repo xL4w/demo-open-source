@@ -80,10 +80,12 @@ The following settings are applied to `master`, `staging`, and `aws-dev` branche
 * **Require linear history:** Enabled (optional, prevents merge commits)
 * **Allow force pushes:** Disabled
 * **Allow deletions:** Disabled
+
 2. **GitHub Actions Workflows:**
 
 * `.github/workflows/auto-assign_PR_Reviewers.yml`: Automatically assigns `@GTCrais` and `@CTLLaw` as reviewers to every new PR.
 * `.github/workflows/enforce-branch-sequence.yml`: This workflow enforces the defined branch flow, preventing PRs that don't adhere to the allowed sequence. It also blocks direct pushes to protected branches.
+
 3. **Test Suite:**
 
 The repository includes a comprehensive test suite (`test-branch-sequence.yml` and associated scripts) designed to rigorously validate the GitHub Guardian setup. The tests cover scenarios such as:
@@ -93,6 +95,7 @@ The repository includes a comprehensive test suite (`test-branch-sequence.yml` a
 * Attempts to add unauthorized reviewers (should fail)
 * Attempts to approve or merge PRs by unauthorized users (should fail)
 * Valid PRs created and merged by authorized users (should succeed)
+
 4. **Scripts:**
 
 The `scripts` directory contains shell scripts used by the test suite:
