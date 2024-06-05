@@ -52,7 +52,6 @@ This solution implements a robust GitHub Guardian setup utilizing GitHub Actions
 │ ├── common_functions.sh
 │ ├── create-and-merge-pr.sh
 │ ├── create-pr.sh
-│ └── enforce-branch-sequence-test.sh
 └── test-workflows.yml
 ```
 
