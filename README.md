@@ -119,3 +119,4 @@ The `scripts` directory contains shell scripts used by the test suite:
 Some change
 Some change
 Some change
+Some change
