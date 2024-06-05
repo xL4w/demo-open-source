@@ -44,25 +44,12 @@ jobs:
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
         with:
           egress-policy: audit
-
       - name: Checkout Code
         uses: actions/checkout@v4.1.6 # v4.1.6
-  
       - name: Verify working directory
-        run: pwd
-  
-      - name: List root directory
-        run: ls -la 
-  
-      - name: List workflows directory
-        run: ls -la ./.github/workflows
-  
-      - name: List scripts directory
-        run: ls -la ./.github/workflows/scripts/
-  
+        run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
       - name: Check if test script exists
         run: test -f ./.github/workflows/scripts/common_functions.sh && echo "File exists" || echo "File does not exist"        
-  
       - name: Make tests scripts executable
         run: |
           chmod +x ./.github/workflows/scripts/common_functions.sh        
@@ -114,6 +101,10 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4.1.6 # v4.1.6
+      - name: Verify working directory
+        run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
+      - name: Check if test script exists
+        run: test -f ./.github/workflows/scripts/common_functions.sh && echo "File exists" || echo "File does not exist"            
       - name: Create and merge PR (Success case)
         if: ${{ !matrix.case.shouldFail }}
         run: |
@@ -139,6 +130,10 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4.1.6 # v4.1.6
+      - name: Verify working directory
+        run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
+      - name: Check if test script exists
+        run: test -f ./.github/workflows/scripts/common_functions.sh && echo "File exists" || echo "File does not exist"           
       - name: Create PR
         run: |
           chmod +x ./.github/workflows/scripts/create-pr.sh && ./.github/workflows/scripts/create-pr.sh ${{ matrix.case.creator }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
@@ -167,6 +162,10 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4.1.6 # v4.1.6
+      - name: Verify working directory
+        run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
+      - name: Check if test script exists
+        run: test -f ./.github/workflows/scripts/common_functions.sh && echo "File exists" || echo "File does not exist"           
       - name: Create and merge PR (if allowed)
         if: ${{ !matrix.case.shouldFail }}
         run: |
@@ -186,6 +185,10 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4.1.6 # v4.1.6
+      - name: Verify working directory
+        run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
+      - name: Check if test script exists
+        run: test -f ./.github/workflows/scripts/common_functions.sh && echo "File exists" || echo "File does not exist"        
       - name: Create PR (any user can create on aws-dev)
         run: |
           chmod +x ./.github/workflows/scripts/create-pr.sh && ./.github/workflows/scripts/create-pr.sh anyuser aws-dev ${{ env.GH_TOKEN }}
