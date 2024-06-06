@@ -4,6 +4,9 @@ creator=$1
 target_branch=$2
 gh_token=$3
 
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
+
 # Authenticate with GitHub CLI
 gh auth login --with-token < "$gh_token"
 
