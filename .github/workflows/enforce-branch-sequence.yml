@@ -1,12 +1,12 @@
-name: Enforce Branch Sequence and Permissions
+name: GitHub Guardian
 
 on:
   pull_request_target:
     types: [assigned, unassigned, labeled, unlabeled, opened, edited, closed, reopened, synchronize, converted_to_draft, ready_for_review, locked, unlocked, review_requested, review_request_removed, auto_merge_enabled, auto_merge_disabled]
     branches:
       - 'master'
-      - 'staging'      
-      - 'aws-dev'      
+      - 'staging'
+      - 'aws-dev'
 
   pull_request_review:
     types: [submitted]
@@ -45,6 +45,11 @@ jobs:
               ['staging', 'master']
             ];
 
+            // Allow merges from any branch into aws-dev
+            if (baseBranch === 'aws-dev') {
+              return; // No further checks needed for initial PRs to aws-dev
+            }
+
             const isValidTransition = allowedTransitions.some(
               ([source, target]) => headBranch === source && baseBranch === target
             );
@@ -52,7 +57,7 @@ jobs:
             if (!isValidTransition) {
               const errorMessage = "Branch Protection Rule: This pull request violates our branching workflow. Changes must flow through specific stages:\n\n" +
                                   "1. New features are developed in separate feature branches (like \"" + headBranch + "\").\n" +
-                                  "2. Feature branches are merged ONLY into the \"aws-dev\" branch for initial testing.\n" +
+                                  "2. Feature branches are merged into the \"aws-dev\" branch for initial testing.\n" +
                                   "3. Once tested, changes in \"aws-dev\" are merged into the \"staging\" branch for further integration and user acceptance testing.\n" +
                                   "4. Finally, approved changes in \"staging\" are merged into the \"master\" branch for production deployment.\n\n" +
                                   "Please update your pull request to follow this workflow.";
