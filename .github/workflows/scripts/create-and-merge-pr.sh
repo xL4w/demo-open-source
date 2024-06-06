@@ -3,6 +3,9 @@ source_branch=$1
 target_branch=$2
 gh_token=$3
 
+# Authenticate with GitHub CLI
+gh auth login --with-token < "$gh_token"
+
 git config --global user.email "partner_@outlook.com"
 git config --global user.name "4k4xs4pH1r3-2"
 
