@@ -63,7 +63,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.6 
+        uses: actions/checkout@v4.1.6 # v4.1.6 
 
       - name: Print PR sequence
         run: |
@@ -87,9 +87,8 @@ jobs:
           else
             echo "@"$pr_creator" ❌ Invalid PR sequence:  $head_branch -> $base_branch"
             echo "Please follow the correct sequence: aws-dev -> staging -> master"
+            echo "To fix this, you can either:\n\n1. **Rebase your branch** onto the correct target branch before creating the PR.\n2. **Update your PR** to target the correct branch."
           fi
-
-          echo "To fix this, you can either:\n\n1. **Rebase your branch** onto the correct target branch before creating the PR.\n2. **Update your PR** to target the correct branch."
 
   # Job to manage PRs
   manage-pull-requests:
@@ -193,7 +192,5 @@ jobs:
           else
             echo "@"$pr_creator" ❌ Invalid PR sequence:  $head_branch -> $base_branch"
             echo "Please follow the correct sequence: aws-dev -> staging -> master"
-            exit 1
+            echo "To fix this, you can either:\n\n1. **Rebase your branch** onto the correct target branch before creating the PR.\n2. **Update your PR** to target the correct branch."
           fi
-
-          echo "To fix this, you can either:\n\n1. **Rebase your branch** onto the correct target branch before creating the PR.\n2. **Update your PR** to target the correct branch."
