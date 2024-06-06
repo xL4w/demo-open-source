@@ -24,6 +24,7 @@ jobs:
   # Job to enforce branch protection rules
   enforce-branch-protection:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request_target' || github.event_name == 'push' }}
 
     steps:
       - name: Clear Cache
@@ -54,9 +55,46 @@ jobs:
             exit 1
           fi
 
+  # Job to print PR sequence for PR creator
+  print-pr-sequence:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request_target' }}
+    needs: [] # No dependencies
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.6 
+
+      - name: Print PR sequence
+        run: |
+          # Get the PR's base and head branches
+          base_branch=$(echo "${{ github.event.pull_request.base.ref }}" | awk '{print $NF}')
+          head_branch=$(echo "${{ github.event.pull_request.head.ref }}" | awk '{print $NF}')
+
+          # Get the PR creator's username
+          pr_creator=$(echo "${{ github.event.pull_request.user.login }}" | awk '{print $NF}')
+
+          # Determine the PR sequence
+          if [[ "$base_branch" == "aws-dev" ]]; then
+            echo "@"$pr_creator" 👉 PR sequence:  $head_branch -> aws-dev"
+            echo "✔️ This is a valid sequence."
+          elif [[ "$base_branch" == "staging" && "$head_branch" == "aws-dev" ]]; then
+            echo "@"$pr_creator" 👉 PR sequence: aws-dev -> staging"
+            echo "✔️ This is a valid sequence."
+          elif [[ "$base_branch" == "master" && "$head_branch" == "staging" ]]; then
+            echo "@"$pr_creator" 👉 PR sequence: staging -> master"
+            echo "✔️ This is a valid sequence."
+          else
+            echo "@"$pr_creator" ❌ Invalid PR sequence:  $head_branch -> $base_branch"
+            echo "Please follow the correct sequence: aws-dev -> staging -> master"
+          fi
+
+          echo "To fix this, you can either:\n\n1. **Rebase your branch** onto the correct target branch before creating the PR.\n2. **Update your PR** to target the correct branch."
+
   # Job to manage PRs
   manage-pull-requests:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request_target' || github.event_name == 'pull_request_review' }}
 
     steps:
       - name: Checkout code
@@ -133,7 +171,7 @@ jobs:
               // });
             }
 
-      - name: Print PR sequence
+      - name: Print PR sequence (again for further validation)
         run: |
           # Get the PR's base and head branches
           base_branch=$(echo "${{ github.event.pull_request.base.ref }}" | awk '{print $NF}')
@@ -144,16 +182,16 @@ jobs:
 
           # Determine the PR sequence
           if [[ "$base_branch" == "aws-dev" ]]; then
-            echo "👉 PR sequence:  $head_branch -> aws-dev"
+            echo "@"$pr_creator" 👉 PR sequence:  $head_branch -> aws-dev"
             echo "✔️ This is a valid sequence."
           elif [[ "$base_branch" == "staging" && "$head_branch" == "aws-dev" ]]; then
-            echo "👉 PR sequence: aws-dev -> staging"
+            echo "@"$pr_creator" 👉 PR sequence: aws-dev -> staging"
             echo "✔️ This is a valid sequence."
           elif [[ "$base_branch" == "master" && "$head_branch" == "staging" ]]; then
-            echo "👉 PR sequence: staging -> master"
+            echo "@"$pr_creator" 👉 PR sequence: staging -> master"
             echo "✔️ This is a valid sequence."
           else
-            echo "❌ Invalid PR sequence:  $head_branch -> $base_branch"
+            echo "@"$pr_creator" ❌ Invalid PR sequence:  $head_branch -> $base_branch"
             echo "Please follow the correct sequence: aws-dev -> staging -> master"
             exit 1
           fi
