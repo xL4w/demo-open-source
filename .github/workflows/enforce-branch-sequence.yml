@@ -13,6 +13,13 @@ on:
       - 'staging'
       - 'aws-dev'
 
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: write      
+
 jobs:
   # Job to enforce branch protection rules
   enforce-branch-protection:
@@ -20,7 +27,7 @@ jobs:
 
     steps:
       - name: Clear Cache
-        uses: actions/cache@v4.0.2
+        uses: actions/cache@v4.0.2 # v4.0.2 
         with:
          path: |
            ./.github/workflows/
@@ -29,12 +36,13 @@ jobs:
            ${{ runner.os }}-workflow-${{ github.event_name }}-
 
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0 # v2.8.0
+        uses: step-security/harden-runner@v2.8.0 # v2.8.0 
         with:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.6 # v4.1.6 
+
       - name: Enforce branch protection
         run: |
           # Prevent direct pushes to protected branches
@@ -49,11 +57,10 @@ jobs:
   # Job to manage PRs
   manage-pull-requests:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.6 # v4.1.6 
 
       - name: Enforce initial PR target
         run: |
@@ -68,8 +75,7 @@ jobs:
           fi
 
       - name: Auto-assign reviewers
-        if: github.event.action == 'opened' || github.event.action == 'reopened'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7.0.1 # v7.0.1 
         with:
           script: |
             github.rest.pulls.requestReviewers({
@@ -80,7 +86,7 @@ jobs:
             });
 
       - name: Restrict PR creation and merging
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7.0.1 # v7.0.1 
         with:
           script: |
             const allowedUsers = ['GTCrais', 'CTLLaw'];
@@ -126,3 +132,30 @@ jobs:
               //   state: 'open'
               // });
             }
+
+      - name: Print PR sequence
+        run: |
+          # Get the PR's base and head branches
+          base_branch=$(echo "${{ github.event.pull_request.base.ref }}" | awk '{print $NF}')
+          head_branch=$(echo "${{ github.event.pull_request.head.ref }}" | awk '{print $NF}')
+
+          # Get the PR creator's username
+          pr_creator=$(echo "${{ github.event.pull_request.user.login }}" | awk '{print $NF}')
+
+          # Determine the PR sequence
+          if [[ "$base_branch" == "aws-dev" ]]; then
+            echo "👉 PR sequence:  $head_branch -> aws-dev"
+            echo "✔️ This is a valid sequence."
+          elif [[ "$base_branch" == "staging" && "$head_branch" == "aws-dev" ]]; then
+            echo "👉 PR sequence: aws-dev -> staging"
+            echo "✔️ This is a valid sequence."
+          elif [[ "$base_branch" == "master" && "$head_branch" == "staging" ]]; then
+            echo "👉 PR sequence: staging -> master"
+            echo "✔️ This is a valid sequence."
+          else
+            echo "❌ Invalid PR sequence:  $head_branch -> $base_branch"
+            echo "Please follow the correct sequence: aws-dev -> staging -> master"
+            exit 1
+          fi
+
+          echo "To fix this, you can either:\n\n1. **Rebase your branch** onto the correct target branch before creating the PR.\n2. **Update your PR** to target the correct branch."
