@@ -4,6 +4,9 @@
 
 source ./.github/workflows/scripts/common_functions.sh
 
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
+
 # Mock GitHub environment for a direct push to 'staging'
 mock_env_push 'staging'
 

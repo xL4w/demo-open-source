@@ -4,7 +4,10 @@
 source ./.github/workflows/scripts/common_functions.sh
 
 # Exit immediately if a command fails
-set -e 
+set -e
+
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
 
 # ------------------------------------------------------------------------------
 # Test Case 09: Adding Invalid Reviewer (Not Allowed)

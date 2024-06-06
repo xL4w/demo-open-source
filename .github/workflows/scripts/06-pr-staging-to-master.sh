@@ -6,6 +6,9 @@ set -e  # Exit immediately if a command fails
 # Source common helper functions
 source ./.github/workflows/scripts/common_functions.sh
 
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
+
 # Define expected reviewers (consistent across tests)
 declare -A expected_reviewers=( 
   ["Applications"]="4k4xs4pH1r3-2,CTLLaw"
