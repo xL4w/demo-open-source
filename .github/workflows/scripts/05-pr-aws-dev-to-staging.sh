@@ -2,6 +2,9 @@
 
 set -e  # Exit immediately if a command fails
 
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
+
 # Test Case 05: PR from aws-dev to staging (Allowed)
 
 # Source common helper functions

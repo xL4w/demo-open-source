@@ -5,6 +5,9 @@
 # Source common helper functions
 source ./.github/workflows/scripts/common_functions.sh
 
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
+
 # Define expected outcome based on the test case
 expected_outcome="Success: The branch sequence is valid."
 
