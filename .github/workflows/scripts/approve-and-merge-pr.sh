@@ -3,6 +3,9 @@
 user=$1
 gh_token=$2
 
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
+
 # Authenticate with GitHub CLI
 gh auth login --with-token < "$gh_token"
 
