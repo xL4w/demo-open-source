@@ -7,6 +7,9 @@ set -e  # Exit immediately if a command fails
 # Source common helper functions
 source "$(dirname "$0")"/common_functions.sh
 
+# GitHub credentials
+GH_TOKEN="${{ secrets.GH_TOKEN }}" 
+
 # Mock GitHub environment variables for a direct push to master
 mock_github_event_push master ""
 
