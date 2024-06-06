@@ -72,10 +72,21 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "github-actions@github.com"
+          # Fetch and merge/rebase before pushing
+          git fetch origin ${{ matrix.branch }}
+          git checkout ${{ matrix.branch }}  # Switch to the target branch
+          git merge origin/${{ matrix.branch }} || git rebase origin/${{ matrix.branch }}
           echo "Some change" >> README.md
           git add .
           git commit -m "Test commit"
+          # Push with error handling
+          if git push origin HEAD:${{ matrix.branch }}; then
           git push origin HEAD:${{ matrix.branch }}
+             echo "::error::Direct push to ${{ matrix.branch }} unexpectedly succeeded! This is a security issue."
+             exit 1
+          else
+              echo "Direct push to ${{ matrix.branch }} correctly failed as expected."
+          fi
         continue-on-error: true
       - name: Check for failure
         run: |
