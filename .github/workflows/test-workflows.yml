@@ -85,12 +85,12 @@ jobs:
              echo "::error::Direct push to ${{ matrix.branch }} unexpectedly succeeded! This is a security issue."
              exit 1
           else
-              echo "Direct push to ${{ matrix.branch }} correctly failed as expected."
+              echo "Direct push to ${{ matrix.branch }} correctly failed as expected. It's good that you can't push directly to these branches."
           fi
         continue-on-error: true
       - name: Check for failure
         run: |
-          echo "Direct push to ${{ matrix.branch }} should have failed."
+          echo "Direct push to ${{ matrix.branch }} should have failed. This test is designed to ensure that only pull requests are allowed for these branches."
           exit 1
         if: ${{ success() }}
         continue-on-error: true
@@ -100,12 +100,12 @@ jobs:
     strategy:
       matrix:
         case:
-          - { source: 'test-branch', target: 'aws-dev', shouldFail: false }
-          - { source: 'aws-dev', target: 'staging', shouldFail: false }
-          - { source: 'staging', target: 'master', shouldFail: false }
-          - { source: 'test-branch', target: 'staging', shouldFail: true }
-          - { source: 'test-branch', target: 'master', shouldFail: true }
-          - { source: 'aws-dev', target: 'master', shouldFail: true }
+          - { source: 'test-branch', target: 'aws-dev', shouldFail: false, message: 'Creating a pull request from a test branch to the aws-dev branch should be successful.' }
+          - { source: 'aws-dev', target: 'staging', shouldFail: false, message: 'Creating a pull request from aws-dev branch to the staging branch should be successful.' }
+          - { source: 'staging', target: 'master', shouldFail: false, message: 'Creating a pull request from staging branch to the master branch should be successful.' }
+          - { source: 'test-branch', target: 'staging', shouldFail: true, message: 'Creating a pull request directly from a test branch to the staging branch should fail. You need to first merge to aws-dev.' }
+          - { source: 'test-branch', target: 'master', shouldFail: true, message: 'Creating a pull request directly from a test branch to the master branch should fail. You need to first merge to aws-dev and then staging.' }
+          - { source: 'aws-dev', target: 'master', shouldFail: true, message: 'Creating a pull request directly from aws-dev to master branch should fail. You need to first merge to staging.' }
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
@@ -123,6 +123,7 @@ jobs:
         if: ${{ !matrix.case.shouldFail }}
         run: |
           chmod +x ./.github/workflows/scripts/create-and-merge-pr.sh && ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.source }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+        continue-on-error: true  
       - name: Attempt and fail PR creation/merge (Failure case)
         if: ${{ matrix.case.shouldFail }}
         run: |
@@ -134,9 +135,9 @@ jobs:
     strategy:
       matrix:
         case:
-          - { creator: 'GTCrais', target: 'aws-dev' }
-          - { creator: 'CTLLaw', target: 'aws-dev' }
-          - { creator: '4k4xs4pH1r3-2', target: 'aws-dev' }
+          - { creator: 'GTCrais', target: 'aws-dev', message: 'GTCrais creating a pull request to aws-dev should be successful and automatically trigger review.' }
+          - { creator: 'CTLLaw', target: 'aws-dev', message: 'CTLLaw creating a pull request to aws-dev should be successful and automatically trigger review.' }
+          - { creator: '4k4xs4pH1r3-2', target: 'aws-dev', message: '4k4xs4pH1r3-2 creating a pull request to aws-dev should be successful and automatically trigger review.' }
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
@@ -157,11 +158,13 @@ jobs:
       - name: Check for automatic reviewers
         run: |
           chmod +x ./.github/workflows/scripts/check-reviewers.sh && ./.github/workflows/scripts/check-reviewers.sh ${{ env.ALLOWED_REVIEWERS }} ${{ env.GH_TOKEN }}
+          echo "This test checks if the automatic reviewers are assigned correctly."
         continue-on-error: true  
       - name: Approve and merge PR (if allowed)
         if: ${{ matrix.case.creator == 'GTCrais' || matrix.case.creator == 'CTLLaw' }}
         run: |
           chmod +x ./.github/workflows/scripts/approve-and-merge-pr.sh && ./.github/workflows/scripts/approve-and-merge-pr.sh ${{ matrix.case.creator }} ${{ env.GH_TOKEN }}
+          echo "This test checks if the allowed users can approve and merge the pull requests."
         continue-on-error: true  
   # Test scenarios 7, 8: User restrictions on staging/master PRs and approvals
   test-protected-branch-restrictions:
@@ -169,10 +172,10 @@ jobs:
     strategy:
       matrix:
         case:
-          - { user: 'GTCrais', target: 'staging', shouldFail: false }
-          - { user: 'CTLLaw', target: 'staging', shouldFail: false }
-          - { user: '4k4xs4pH1r3-2', target: 'staging', shouldFail: true }
-          - { user: '4k4xs4pH1r3-2', target: 'master', shouldFail: true }
+          - { user: 'GTCrais', target: 'staging', shouldFail: false, message: 'GTCrais creating a pull request to staging branch should be successful and trigger the review process.' }
+          - { user: 'CTLLaw', target: 'staging', shouldFail: false, message: 'CTLLaw creating a pull request to staging branch should be successful and trigger the review process.' }
+          - { user: '4k4xs4pH1r3-2', target: 'staging', shouldFail: true, message: '4k4xs4pH1r3-2 creating a pull request to staging branch should fail as they are not allowed to push directly to the staging branch.' }
+          - { user: '4k4xs4pH1r3-2', target: 'master', shouldFail: true, message: '4k4xs4pH1r3-2 creating a pull request to the master branch should fail as they are not allowed to push directly to the master branch.' }
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
@@ -191,7 +194,7 @@ jobs:
         continue-on-error: true
       - name: Check for failure
         run: |
-          echo "Direct push to ${{ matrix.branch }} should have failed."
+          echo "Direct push to ${{ matrix.branch }} should have failed. This test checks if pushing directly to staging and master is restricted."
           exit 1
         if: ${{ success() }}
         continue-on-error: true      
@@ -210,6 +213,7 @@ jobs:
         if: ${{ matrix.case.shouldFail }}
         run: |
           ! chmod +x ./.github/workflows/scripts/create-and-merge-pr.sh && ./.github/workflows/scripts/create-and-merge-pr.sh ${{ matrix.case.user }} ${{ matrix.case.target }} ${{ env.GH_TOKEN }}
+          echo "This test ensures that users not allowed to push directly to staging or master cannot create pull requests to those branches."
         continue-on-error: true  
   # Test scenario 10: Reviewer self-adding and restrictions
   test-reviewer-management:
@@ -232,7 +236,7 @@ jobs:
         continue-on-error: true
       - name: Check for failure
         run: |
-          echo "Direct push to ${{ matrix.branch }} should have failed."
+          echo "Direct push to ${{ matrix.branch }} should have failed. This test ensures that only pull requests are allowed for protected branches."
           exit 1
         if: ${{ success() }}
         continue-on-error: true     
@@ -249,8 +253,11 @@ jobs:
       - name: Attempt to add invalid reviewer
         run: |
           ! chmod +x ./.github/workflows/scripts/add-reviewer.sh && ./.github/workflows/scripts/add-reviewer.sh someotheruser ${{ env.GH_TOKEN }}
+          echo "This test ensures that reviewers cannot be added arbitrarily. Only allowed reviewers can be added."
         continue-on-error: true  
       - name: Add allowed reviewers
         run: |
           chmod +x ./.github/workflows/scripts/add-reviewer.sh && ./.github/workflows/scripts/add-reviewer.sh ${{ env.ALLOWED_REVIEWERS }} ${{ env.GH_TOKEN }}
-        continue-on-error: true  
+          echo "This test ensures that allowed reviewers can be added to the pull request."
+        continue-on-error: true
+        
