@@ -7,12 +7,16 @@ on:
       - 'master'
       - 'staging'
       - 'aws-dev'
+  push:
+    branches:
+      - 'master'
+      - 'staging'
+      - 'aws-dev'
 
 jobs:
   # Job to enforce branch protection rules
   enforce-branch-protection:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
 
     steps:
       - name: Clear Cache
@@ -22,24 +26,23 @@ jobs:
            ./.github/workflows/
          key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
          restore-keys: |
-           ${{ runner.os }}-workflow-${{ github.event_name }}-             
+           ${{ runner.os }}-workflow-${{ github.event_name }}-
+
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
         with:
-          egress-policy: audit      
+          egress-policy: audit
+
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Enforce branch protection
         run: |
           # Prevent direct pushes to protected branches
           if [[ "$GITHUB_REF" == "refs/heads/master" ]]; then
-            echo "Direct pushes to 'master' branch are not allowed. Please create a Pull Request instead."
+            echo "Direct pushes to 'master' branch are not allowed. Please create a Pull Request to 'aws-dev' instead."
             exit 1
           elif [[ "$GITHUB_REF" == "refs/heads/staging" ]]; then
-            echo "Direct pushes to 'staging' branch are not allowed. Please create a Pull Request instead."
-            exit 1
-          elif [[ "$GITHUB_REF" == "refs/heads/aws-dev" ]]; then
-            echo "Direct pushes to 'aws-dev' branch are not allowed. Please create a Pull Request instead."
+            echo "Direct pushes to 'staging' branch are not allowed. Please create a Pull Request to 'aws-dev' instead."
             exit 1
           fi
 
@@ -52,19 +55,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Enforce PR sequence
+      - name: Enforce initial PR target
         run: |
-          # Get source and target branches
-          source_branch="${{ github.event.pull_request.head.ref }}"
+          # Get target branch
           target_branch="${{ github.event.pull_request.base.ref }}"
 
-          # Allowed PR sequences
-          if [[ "$source_branch" == "aws-dev" && "$target_branch" == "staging" ]]; then
-            echo "Pull Request from 'aws-dev' to 'staging' is allowed."
-          elif [[ "$source_branch" == "staging" && "$target_branch" == "master" ]]; then
-            echo "Pull Request from 'staging' to 'master' is allowed."
-          else
-            echo "Invalid Pull Request sequence: '$source_branch' to '$target_branch'. Only 'aws-dev' -> 'staging' -> 'master' is allowed."
+          # Check if the initial PR target is 'aws-dev'
+          if [[ "$target_branch" != "aws-dev" ]]; then
+            echo "⚠️ Invalid Pull Request target: '$target_branch'."
+            echo "All Pull Requests must initially target the 'aws-dev' branch."
             exit 1
           fi
 
@@ -87,6 +86,7 @@ jobs:
             const allowedUsers = ['GTCrais', 'CTLLaw'];
             const user = context.actor;
             const baseBranch = context.payload.pull_request.base.ref;
+            const headBranch = context.payload.pull_request.head.ref;
 
             // Allow merges from any branch into aws-dev
             if (baseBranch === 'aws-dev') {
@@ -101,12 +101,13 @@ jobs:
                 issue_number: context.issue.number,
                 body: `@${user}, you are not allowed to create Pull Requests to this branch. Only ${allowedUsers.join(', ')} can.`
               });
-              github.rest.pulls.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number,
-                state: 'closed'
-              });
+              // Don't close the PR, just comment and wait for the user to fix it
+              // github.rest.pulls.update({
+              //   owner: context.repo.owner,
+              //   repo: context.repo.repo,
+              //   pull_number: context.issue.number,
+              //   state: 'closed'
+              // });
             }
 
             // Restrict merging to allowed users
@@ -117,7 +118,7 @@ jobs:
                 issue_number: context.issue.number,
                 body: `@${user}, you are not allowed to merge Pull Requests. Only ${allowedUsers.join(', ')} can.`
               });
-              // Reopen the PR (optional)
+              // Don't reopen the PR
               // github.rest.pulls.update({
               //   owner: context.repo.owner,
               //   repo: context.repo.repo,
