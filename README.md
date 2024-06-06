@@ -116,5 +116,3 @@ The `scripts` directory contains shell scripts used by the test suite:
 * **Placeholders:** Remember to replace placeholders like `@GTCrais`, `@CTLLaw`, and branch names with your actual usernames and branch names.
 * **Regular Review:** Periodically review and update your GitHub Guardian configuration to adapt to changing requirements and evolving security best practices.
 * **Additional Security:** Consider implementing additional security measures like secret scanning, dependency vulnerability analysis, and code security audits.
-Some change
-Some change
