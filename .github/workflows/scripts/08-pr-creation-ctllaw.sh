@@ -3,7 +3,7 @@ set -e  # Exit immediately if a command fails
 
 # ------------------------------------------------------------------------------
 # Test Case 08: PR Creation by @CTLLaw 
-#                (Reviewers should automatically be @CTLLaw (creator) and @4k4xs4pH1r3-2)
+#                (Reviewers should automatically be @CTLLaw (creator) and @GTCrais)
 # ------------------------------------------------------------------------------
 
 # Source common functions (Ensure this path is correct)
@@ -22,7 +22,7 @@ PR_CREATOR="CTLLaw"
 # Target branch for the PR
 TARGET_BRANCH="aws-dev" 
 # Expected reviewers (should be automatically assigned)
-EXPECTED_REVIEWERS="CTLLaw,4k4xs4pH1r3-2"  
+EXPECTED_REVIEWERS="CTLLaw,GTCrais"  
 
 # Create a unique branch name for this test
 TEST_BRANCH="test-pr-creation-ctllaw-$(date +%s)"
@@ -47,7 +47,7 @@ echo "Assigned reviewers: $assigned_reviewers"
 
 # Verify expected reviewers are assigned
 if [[ "$assigned_reviewers" == "$EXPECTED_REVIEWERS" ]]; then
-  echo "✅ PASS: Correct reviewers (@4k4xs4pH1r3-2 and @CTLLaw) were automatically added."
+  echo "✅ PASS: Correct reviewers (@GTCrais and @CTLLaw) were automatically added."
 else
   echo "❌ FAIL: Incorrect reviewers. Expected: '$EXPECTED_REVIEWERS', Actual: '$assigned_reviewers'"
   exit 1 

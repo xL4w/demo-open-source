@@ -32,12 +32,12 @@ List any related issues or tickets (e.g., Jira tickets) that this pull request a
 **Important:**
 
 * **Do not** manually assign additional reviewers. The system will automatically add the required reviewers based on the target branch and changes:
-* **@ig-ctllaw-testing:** Required for all Application changes.
-* **@4k4xs4pH1r3-2:** Required for all Infrastructure changes.
+* **@GTCrais:** Required for all Application changes.
+* **@mbsimonovic:** Required for all Infrastructure changes.
 * **@CTLLaw:** Required for all changes targeting the `master` branch.
 
 * **No other users are allowed to review or approve pull requests.**
-* **Only @ig-ctllaw-testing and @CTLLaw** are authorized to create pull requests targeting the `staging` or `master` branches.
+* **Only @GTCrais and @CTLLaw** are authorized to create pull requests targeting the `staging` or `master` branches.
 
 **Merging Policy:**
 
@@ -45,10 +45,10 @@ To maintain a controlled and secure deployment process, adhere to the following 
 
 1. **Target Branch:** All pull requests **must** initially target the `aws-dev` branch. Any attempts to directly push to `master` or `staging` will be rejected.
 2. **Approval Requirements:**
-* **`aws-dev` (Applications):** Requires approval from **@ig-ctllaw-testing**.
-* **`aws-dev` (Infrastructure):** Requires approval from **@4k4xs4pH1r3-2**.
-* **`staging` (Applications):** Requires approval from **@ig-ctllaw-testing**.
-* **`staging` (Infrastructure):** Requires approval from **@4k4xs4pH1r3-2**.
+* **`aws-dev` (Applications):** Requires approval from **@GTCrais**.
+* **`aws-dev` (Infrastructure):** Requires approval from **@mbsimonovic**.
+* **`staging` (Applications):** Requires approval from **@GTCrais**.
+* **`staging` (Infrastructure):** Requires approval from **@mbsimonovic**.
 * **`master` (production):** After thorough testing on `staging`, a final PR from `staging` to `master` requires approval from **@CTLLaw**.
 
 ## Checklist for Contributors

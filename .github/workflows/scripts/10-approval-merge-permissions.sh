@@ -30,12 +30,12 @@ run_test_scenario() {
 
     # Add required reviewers (adjust logic as needed)
     if [[ "$branch" == "aws-dev" ]]; then
-        add_reviewer "$pr_url" "4k4xs4pH1r3-2"
+        add_reviewer "$pr_url" "GTCrais"
     elif [[ "$branch" == "staging" ]]; then
-        add_reviewer "$pr_url" "4k4xs4pH1r3-2"
+        add_reviewer "$pr_url" "GTCrais"
     else  # master
         add_reviewer "$pr_url" "CTLLaw"
-        add_reviewer "$pr_url" "4k4xs4pH1r3-2" 
+        add_reviewer "$pr_url" "GTCrais" 
     fi
 
     # Set the current user for the GitHub Action
@@ -63,26 +63,26 @@ run_test_scenario() {
 # -------------------- Test Scenarios --------------------
 
 # Approvals 
-run_test_scenario "4k4xs4pH1r3-2" "aws-dev" "APPROVE" 200 "Application"
+run_test_scenario "GTCrais" "aws-dev" "APPROVE" 200 "Application"
 run_test_scenario "CTLLaw" "aws-dev" "APPROVE" 200 "Application"
-run_test_scenario "4k4xs4pH1r3-2" "aws-dev" "APPROVE" 403 "Application"
+run_test_scenario "GTCrais" "aws-dev" "APPROVE" 403 "Application"
 run_test_scenario "other-user" "aws-dev" "APPROVE" 403 "Application"
 
-run_test_scenario "4k4xs4pH1r3-2" "staging" "APPROVE" 200 "Application"
-run_test_scenario "4k4xs4pH1r3-2" "staging" "APPROVE" 403 "Application"
+run_test_scenario "GTCrais" "staging" "APPROVE" 200 "Application"
+run_test_scenario "GTCrais" "staging" "APPROVE" 403 "Application"
 run_test_scenario "other-user" "staging" "APPROVE" 403 "Application"
 
 run_test_scenario "CTLLaw" "master" "APPROVE" 200 "Application"
-run_test_scenario "4k4xs4pH1r3-2" "master" "APPROVE" 403 "Application"
+run_test_scenario "GTCrais" "master" "APPROVE" 403 "Application"
 run_test_scenario "other-user" "master" "APPROVE" 403 "Application"
 
 # Merges
-run_test_scenario "4k4xs4pH1r3-2" "master" "MERGE" 200 "Application"
-run_test_scenario "4k4xs4pH1r3-2" "master" "MERGE" 403 "Application"
+run_test_scenario "GTCrais" "master" "MERGE" 200 "Application"
+run_test_scenario "GTCrais" "master" "MERGE" 403 "Application"
 run_test_scenario "other-user" "master" "MERGE" 403 "Application"
 
 # Negative Test Cases: Merging to non-master branches
-run_test_scenario "4k4xs4pH1r3-2" "aws-dev" "MERGE" 405 "Application" 
+run_test_scenario "GTCrais" "aws-dev" "MERGE" 405 "Application" 
 run_test_scenario "CTLLaw" "aws-dev" "MERGE" 405 "Application"
-run_test_scenario "4k4xs4pH1r3-2" "staging" "MERGE" 405 "Application" 
+run_test_scenario "GTCrais" "staging" "MERGE" 405 "Application" 
 run_test_scenario "CTLLaw" "staging" "MERGE" 405 "Application"
