@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v4.1.6 # v4.1.6
 
       - name: Checkov Scan
-        uses: bridgecrewio/checkov-action@v12.2769.0 # v12.2769.0
+        uses: bridgecrewio/checkov-action@v12.2772.0 # v12.2772.0
         with:
           directory: '.'                    # Root directory to scan (adjust if needed)
           output_format: 'cli'             # Output format (cli, json, junit_xml, sarif)
