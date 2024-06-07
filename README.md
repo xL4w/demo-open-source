@@ -42,7 +42,7 @@ This solution implements a robust GitHub Guardian setup utilizing GitHub Actions
 │ ├── 04-pr-any-to-aws-dev.sh
 │ ├── 05-pr-aws-dev-to-staging.sh
 │ ├── 06-pr-staging-to-master.sh
-│ ├── 07-pr-creation-ig-ctllaw-testing.sh
+│ ├── 07-pr-creation-gtcrais.sh
 │ ├── 08-pr-creation-ctllaw.sh
 │ ├── 09-add-invalid-reviewer.sh
 │ ├── 10-approval-merge-permissions.sh
@@ -62,8 +62,8 @@ This solution implements a robust GitHub Guardian setup utilizing GitHub Actions
 * Any branch to `aws-dev`
 * `aws-dev` to `staging`
 * `staging` to `master`
-* **Automated Reviewer Assignment:** `@ig-ctllaw-testing` and `@CTLLaw` are automatically assigned as reviewers to all PRs, ensuring consistent code review coverage.
-* **Restricted Approvals and Merges:** Only `@ig-ctllaw-testing` and `@CTLLaw` can approve and merge PRs, enhancing security and control.
+* **Automated Reviewer Assignment:** `@GTCrais` and `@CTLLaw` are automatically assigned as reviewers to all PRs, ensuring consistent code review coverage.
+* **Restricted Approvals and Merges:** Only `@GTCrais` and `@CTLLaw` can approve and merge PRs, enhancing security and control.
 * **Automated Testing:** A suite of test scripts, executed through GitHub Actions, continuously validates the effectiveness of the implemented guardrails.
 
 ### Implementation Details:
@@ -78,14 +78,14 @@ The following settings are applied to `master`, `staging`, and `aws-dev` branche
 * **Dismiss stale pull request approvals when new commits are pushed:** Enabled
 * **Require status checks to pass before merging:** Enabled 
 * **Require branches to be up to date before merging:** Enabled
-* **Restrict who can push to matching branches:** Enabled, limited to `ig-ctllaw-testing` and `CTLLaw` (except `aws-dev`)
+* **Restrict who can push to matching branches:** Enabled, limited to `gtcrais` and `CTLLaw` (except `aws-dev`)
 * **Require linear history:** Enabled (optional, prevents merge commits)
 * **Allow force pushes:** Disabled
 * **Allow deletions:** Disabled
 
 2. **GitHub Actions Workflows:**
 
-* `.github/workflows/auto-assign_PR_Reviewers.yml`: Automatically assigns `@ig-ctllaw-testing` and `@CTLLaw` as reviewers to every new PR.
+* `.github/workflows/auto-assign_PR_Reviewers.yml`: Automatically assigns `@GTCrais` and `@CTLLaw` as reviewers to every new PR.
 * `.github/workflows/enforce-branch-sequence.yml`: This workflow enforces the defined branch flow, preventing PRs that don't adhere to the allowed sequence. It also blocks direct pushes to protected branches.
 
 3. **Test Suite:**
@@ -113,6 +113,6 @@ The `scripts` directory contains shell scripts used by the test suite:
 
 ### Important Notes:
 
-* **Placeholders:** Remember to replace placeholders like `@ig-ctllaw-testing`, `@CTLLaw`, and branch names with your actual usernames and branch names.
+* **Placeholders:** Remember to replace placeholders like `@GTCrais`, `@CTLLaw`, and branch names with your actual usernames and branch names.
 * **Regular Review:** Periodically review and update your GitHub Guardian configuration to adapt to changing requirements and evolving security best practices.
 * **Additional Security:** Consider implementing additional security measures like secret scanning, dependency vulnerability analysis, and code security audits.

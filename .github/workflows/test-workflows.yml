@@ -14,8 +14,8 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.GH_TOKEN }}
-  ALLOWED_REVIEWERS: 'ig-ctllaw-testing,CTLLaw'
-  ALLOWED_TARGET_BRANCH_USERS: 'ig-ctllaw-testing,CTLLaw'
+  ALLOWED_REVIEWERS: 'GTCrais,CTLLaw'
+  ALLOWED_TARGET_BRANCH_USERS: 'GTCrais,CTLLaw'
 
 permissions:
   contents: read
@@ -60,7 +60,7 @@ jobs:
           chmod +x ./.github/workflows/scripts/04-pr-any-to-aws-dev.sh
           chmod +x ./.github/workflows/scripts/05-pr-aws-dev-to-staging.sh
           chmod +x ./.github/workflows/scripts/06-pr-staging-to-master.sh
-          chmod +x ./.github/workflows/scripts/07-pr-creation-ig-ctllaw-testing.sh
+          chmod +x ./.github/workflows/scripts/07-pr-creation-GTCrais.sh
           chmod +x ./.github/workflows/scripts/08-pr-creation-ctllaw.sh
           chmod +x ./.github/workflows/scripts/09-add-invalid-reviewer.sh
           chmod +x ./.github/workflows/scripts/10-approval-merge-permissions.sh
@@ -135,7 +135,7 @@ jobs:
     strategy:
       matrix:
         case:
-          - { creator: 'ig-ctllaw-testing', target: 'aws-dev', message: 'ig-ctllaw-testing creating a pull request to aws-dev should be successful and automatically trigger review.' }
+          - { creator: 'GTCrais', target: 'aws-dev', message: 'GTCrais creating a pull request to aws-dev should be successful and automatically trigger review.' }
           - { creator: 'CTLLaw', target: 'aws-dev', message: 'CTLLaw creating a pull request to aws-dev should be successful and automatically trigger review.' }
           - { creator: '4k4xs4pH1r3-2', target: 'aws-dev', message: '4k4xs4pH1r3-2 creating a pull request to aws-dev should be successful and automatically trigger review.' }
     steps:
@@ -161,7 +161,7 @@ jobs:
           echo "This test checks if the automatic reviewers are assigned correctly."
         continue-on-error: true  
       - name: Approve and merge PR (if allowed)
-        if: ${{ matrix.case.creator == 'ig-ctllaw-testing' || matrix.case.creator == 'CTLLaw' }}
+        if: ${{ matrix.case.creator == 'GTCrais' || matrix.case.creator == 'CTLLaw' }}
         run: |
           chmod +x ./.github/workflows/scripts/approve-and-merge-pr.sh && ./.github/workflows/scripts/approve-and-merge-pr.sh ${{ matrix.case.creator }} ${{ env.GH_TOKEN }}
           echo "This test checks if the allowed users can approve and merge the pull requests."
@@ -172,7 +172,7 @@ jobs:
     strategy:
       matrix:
         case:
-          - { user: 'ig-ctllaw-testing', target: 'staging', shouldFail: false, message: 'ig-ctllaw-testing creating a pull request to staging branch should be successful and trigger the review process.' }
+          - { user: 'GTCrais', target: 'staging', shouldFail: false, message: 'GTCrais creating a pull request to staging branch should be successful and trigger the review process.' }
           - { user: 'CTLLaw', target: 'staging', shouldFail: false, message: 'CTLLaw creating a pull request to staging branch should be successful and trigger the review process.' }
           - { user: '4k4xs4pH1r3-2', target: 'staging', shouldFail: true, message: '4k4xs4pH1r3-2 creating a pull request to staging branch should fail as they are not allowed to push directly to the staging branch.' }
           - { user: '4k4xs4pH1r3-2', target: 'master', shouldFail: true, message: '4k4xs4pH1r3-2 creating a pull request to the master branch should fail as they are not allowed to push directly to the master branch.' }

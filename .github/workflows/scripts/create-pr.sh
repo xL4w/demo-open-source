@@ -10,8 +10,8 @@ GH_TOKEN="${{ secrets.GH_TOKEN }}"
 # Authenticate with GitHub CLI
 gh auth login --with-token < "$gh_token"
 
-git config --global user.email "partner_@outlook.com"
-git config --global user.name "4k4xs4pH1r3-2"
+git config --global user.email "tomislav@tmweb.dev"
+git config --global user.name "GTCrais"
 
 # Create a temporary branch
 temp_branch=$(date +%s)-${RANDOM}
