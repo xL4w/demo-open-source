@@ -1,9 +1,9 @@
-## Current Badges Status (Wed, June 6 2024 18:12):
+## Current Badges Status (Wed, June 11 2024 15:46):
 
-[![CodeQL](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/github-code-scanning/codeql) [![Dependency Review](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/dependency-review.yml) [![Proof HTML](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/proof-html.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/proof-html.yml) [![Auto Assign PR Creator](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Creator.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Creator.yml) [![Auto Assign PR Reviewers](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Reviewers.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Reviewers.yml) [![Checkov Security Scan](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/checkov.yml/badge.svg)](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/checkov.yml) [![Enforce Branch Sequence and Permissions](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/enforce-branch-sequence.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/enforce-branch-sequence.yml) [![Snyk Infrastructure as Code](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/snyk-infrastructure.yml/badge.svg)](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/snyk-infrastructure.yml)
+[![Proof HTML](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/proof-html.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/proof-html.yml) [![Auto Assign PR Creator](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Creator.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Creator.yml) [![Auto Assign PR Reviewers](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Reviewers.yml/badge.svg)](https://github.com/CTLLAW-Org/demo-open-source/actions/workflows/auto-assign_PR_Reviewers.yml) [![Checkov Security Scan](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/checkov.yml/badge.svg)](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/checkov.yml) [![Branch Protection](https://github.com/CTL-Law-Testing/demo-open-source/actions/workflows/enforce-branch-sequence.yml/badge.svg)](https://github.com/CTL-Law-Testing/demo-open-source/actions/workflows/enforce-branch-sequence.yml) [![Snyk Infrastructure as Code](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/snyk-infrastructure.yml/badge.svg)](https://github.com/Nucleus-Flow-Testing/demo-repository/actions/workflows/snyk-infrastructure.yml)
 
 
-# Welcome to CTL Law organization's demo open source repository, using GitHub Enterprise, with GitHub Advanced Security Enabled.   
+# Welcome to CTL Law organization's demo open source repository   
 
 This code repository (or "repo") is designed to demonstrate the best GitHub offers with the least noise.
 
@@ -23,9 +23,9 @@ After clean-up, there should be only one run per workflow in the dashboard.
 
 This allows us to effectively review only the last run of each workflow to evaluate the current progress and identify when we can stop to clean up the workflow runs.
 
-## GitHub Guardian: Enforcing Workflow and Access Control
+## GitHub Branch Protection: Enforcing Workflow and Access Control
 
-This solution implements a robust GitHub Guardian setup utilizing GitHub Actions workflows to enforce strict branch protection rules, control reviewer assignments, and manage the pull request flow.
+This solution implements a robust GitHub Branch Protection setup utilizing GitHub Actions workflows to enforce strict branch protection rules, control reviewer assignments, and manage the pull request flow.
 
 ### Directory Structure:
 
@@ -90,7 +90,7 @@ The following settings are applied to `master`, `staging`, and `aws-dev` branche
 
 3. **Test Suite:**
 
-The repository includes a comprehensive test suite (`test-branch-sequence.yml` and associated scripts) designed to rigorously validate the GitHub Guardian setup. The tests cover scenarios such as:
+The repository includes a comprehensive test suite (`test-branch-sequence.yml` and associated scripts) designed to rigorously validate the GitHub Branch Protection setup. The tests cover scenarios such as:
 * Direct pushes to protected branches (should fail)
 * PRs created out of the allowed sequence (should fail)
 * PRs created by unauthorized users (should fail)
@@ -103,7 +103,7 @@ The repository includes a comprehensive test suite (`test-branch-sequence.yml` a
 The `scripts` directory contains shell scripts used by the test suite:
 
 * `common_functions.sh`: Holds reusable functions used across different test scripts.
-* **Test Case Scripts:** Individual scripts (`01-direct-push-master.sh`, `02-direct-push-staging.sh`, etc.) simulate specific scenarios to verify the expected behavior of the GitHub Guardian.
+* **Test Case Scripts:** Individual scripts (`01-direct-push-master.sh`, `02-direct-push-staging.sh`, etc.) simulate specific scenarios to verify the expected behavior of the GitHub Branch Protection.
 
 ### How to Test:
 
@@ -114,5 +114,5 @@ The `scripts` directory contains shell scripts used by the test suite:
 ### Important Notes:
 
 * **Placeholders:** Remember to replace placeholders like `@GTCrais`, `@CTLLaw`, and branch names with your actual usernames and branch names.
-* **Regular Review:** Periodically review and update your GitHub Guardian configuration to adapt to changing requirements and evolving security best practices.
+* **Regular Review:** Periodically review and update your GitHub Branch Protection configuration to adapt to changing requirements and evolving security best practices.
 * **Additional Security:** Consider implementing additional security measures like secret scanning, dependency vulnerability analysis, and code security audits.
