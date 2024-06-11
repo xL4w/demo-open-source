@@ -39,12 +39,3 @@ jobs:
       #   uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
       #   with:
       #     sarif_file: 'results.sarif'  # SARIF output file name (adjust if needed)
-
-      - name: Install Checkov
-        run: pip install checkov && pip3 install -U checkov
-
-      - name: Print Checkov Scan Results
-        if: always()  # Ensure this step runs even if previous steps fail
-        run: |
-          echo "Checkov Scan Results:"
-          checkov --directory . --output cli  # Print the Checkov scan results to the console
