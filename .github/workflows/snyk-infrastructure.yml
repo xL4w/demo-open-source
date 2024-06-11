@@ -27,7 +27,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout the specific PR commit
 
       - name: Install Snyk
-        run: pip install snyk && pip3 install -U snyk          
+        run: curl --compressed https://static.snyk.io/cli/latest/snyk-linux -o snyk && chmod +x ./snyk && mv ./snyk /usr/local/bin/ && snyk -v
 
       - name: Snyk Authenticate
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
