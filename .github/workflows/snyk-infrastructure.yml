@@ -17,26 +17,34 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.1 # v2.8.0
+        uses: step-security/harden-runner@v2.8.1 # v2.8.1
         with:
           egress-policy: audit
 
-      - name: Manual Checkout
-        run: |
-          REPO_NAME=$(basename $GITHUB_REPOSITORY)
-          git clone https://${{ secrets.GH_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
-          cd $REPO_NAME
-
-      - name: Snyk Scan
-        id: snyk_scan
-        uses: snyk/actions@b98d498629f1c368650224d6d212bf7dfa89e4bf # v0.4.0
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.6 # v4.1.6
         with:
-          command: test --sarif-file-output=snyk.sarif 
-          args: --all-projects # --severity-threshold=high 
+          ref: ${{ github.event.pull_request.head.sha }} # Checkout the specific PR commit
+
+      - name: Install Snyk
+        run: curl --compressed https://static.snyk.io/cli/latest/snyk-linux -o snyk && chmod +x ./snyk && mv ./snyk /usr/local/bin/ && snyk -v
+
+      - name: Snyk Authenticate
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}          
+
+      # Commented out steps that require GitHub Advanced Security.          
+      #- name: Snyk Scan
+      #  id: snyk_scan
+      #  uses: snyk/actions@b98d498629f1c368650224d6d212bf7dfa89e4bf # v0.4.0
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    command: touch snyk.sarif && test --sarif-file-output=snyk.sarif 
+      #    args: --all-projects # --severity-threshold=high 
           
-      # Commented out steps that require GitHub Advanced Security.
+
       # - name: Upload SARIF file
       #   uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
       #   with:
@@ -47,5 +55,4 @@ jobs:
       - name: Print Snyk Scan Results
         if: always()  # Ensure this step runs even if previous steps fail.
         run: |
-          echo "Snyk Scan Results:"
-          cat snyk.sarif  # Output the results to the console.
+          snyk code test && snyk log4shell && snyk monitor
