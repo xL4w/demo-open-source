@@ -35,8 +35,8 @@ jobs:
 
       - name: Manual Checkout
         run: |
-          git clone 'https://${{ secrets.GH_TOKEN }}@github.com/CTLLAW-Org/demo-open-source.git'
-          cd demo-repository 
+          git clone https://${{ secrets.GH_TOKEN }}@github.com/CTLLAW-Org/demo-open-source.git
+          cd demo-open-source
 
       - name: Snyk Scan
         id: snyk_scan
