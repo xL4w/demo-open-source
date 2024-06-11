@@ -40,6 +40,9 @@ jobs:
       #   with:
       #     sarif_file: 'results.sarif'  # SARIF output file name (adjust if needed)
 
+      - name: Install Checkov
+        run: pip install checkov
+
       - name: Print Checkov Scan Results
         if: always()  # Ensure this step runs even if previous steps fail
         run: |

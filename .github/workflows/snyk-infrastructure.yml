@@ -26,13 +26,18 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout the specific PR commit
 
+      - name: Snyk Authenticate
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}          
+
       - name: Snyk Scan
         id: snyk_scan
         uses: snyk/actions@b98d498629f1c368650224d6d212bf7dfa89e4bf # v0.4.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          command: test --sarif-file-output=snyk.sarif 
+          command: touch snyk.sarif && test --sarif-file-output=snyk.sarif 
           args: --all-projects # --severity-threshold=high 
           
       # Commented out steps that require GitHub Advanced Security.
