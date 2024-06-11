@@ -15,25 +15,33 @@ jobs:
   checkov_scan:
     permissions:
       contents: read  # for actions/checkout to fetch code
-      security-events: write  # for github/codeql-action/upload-sarif to upload SARIF results
+      # security-events: write  # Commented out as it requires GitHub Advanced Security
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.1 # v2.8.0
+        uses: step-security/harden-runner@v2.8.1 # v2.8.1
         with:
           egress-policy: audit
 
       - uses: actions/checkout@v4.1.6 # v4.1.6
 
       - name: Checkov Scan
-        uses: bridgecrewio/checkov-action@v12.2776.0 # v12.2772.0
+        id: checkov_scan
+        uses: bridgecrewio/checkov-action@v12.2776.0 # v12.2776.0
         with:
-          directory: '.'                    # Root directory to scan (adjust if needed)
-          output_format: 'cli'             # Output format (cli, json, junit_xml, sarif)
-          # Add other Checkov configuration options here if necessary (see below)
+          directory: '.'  # Root directory to scan (adjust if needed)
+          output_format: 'cli'  # Output format (cli, json, junit_xml, sarif)
+          # Add other Checkov configuration options here if necessary
 
-      - name: Upload SARIF file (optional)
-        if: always()  # Always run this step, even if previous steps fail
-        uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
-        with:
-          sarif_file: 'results.sarif'     # SARIF output file name (adjust if needed)
+      # Commented out the step that requires GitHub Advanced Security
+      # - name: Upload SARIF file (optional)
+      #   if: always()  # Always run this step, even if previous steps fail
+      #   uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
+      #   with:
+      #     sarif_file: 'results.sarif'  # SARIF output file name (adjust if needed)
+
+      - name: Print Checkov Scan Results
+        if: always()  # Ensure this step runs even if previous steps fail
+        run: |
+          echo "Checkov Scan Results:"
+          checkov --directory . --output cli  # Print the Checkov scan results to the console
