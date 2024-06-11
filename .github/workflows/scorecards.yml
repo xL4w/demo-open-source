@@ -1,8 +1,5 @@
-# This workflow uses actions that are not certified by GitHub. They are provided
-# by a third-party and are governed by separate terms of service, privacy
-# policy, and support documentation.
-
 name: Scorecard supply-chain security
+
 on:
   # For Branch-Protection check. Only the default branch is supported. See
   # https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection
@@ -23,9 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       # Needed to upload the results to code-scanning dashboard.
-      security-events: write
+      # security-events: write  # Commented out as it requires GitHub Advanced Security.
       # Needed to publish results and get a badge (see publish_results below).
-      id-token: write
+      # id-token: write  # Commented out as it requires GitHub Advanced Security.
       contents: read
       actions: read
 
@@ -41,36 +38,31 @@ jobs:
           persist-credentials: false
 
       - name: "Run analysis"
+        id: run_analysis
         uses: ossf/scorecard-action@v2.3.3 # v2.3.3
         with:
           results_file: results.sarif
           results_format: sarif
-          # (Optional) "write" PAT token. Uncomment the `repo_token` line below if:
-          # - you want to enable the Branch-Protection check on a *public* repository, or
-          # - you are installing Scorecards on a *private* repository
-          # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action#authentication-with-pat.
-          # repo_token: ${{ secrets.SCORECARD_TOKEN }}
+          publish_results: false  # Set to false to avoid publishing results as it requires GitHub Advanced Security.
 
-          # Public repositories:
-          #   - Publish results to OpenSSF REST API for easy access by consumers
-          #   - Allows the repository to include the Scorecard badge.
-          #   - See https://github.com/ossf/scorecard-action#publishing-results.
-          # For private repositories:
-          #   - `publish_results` will always be set to `false`, regardless
-          #     of the value entered here.
-          publish_results: true
-
+      # Commented out steps that require GitHub Advanced Security.
       # Upload the results as artifacts (optional). Commenting out will disable uploads of run results in SARIF
       # format to the repository Actions tab.
-      - name: "Upload artifact"
-        uses: actions/upload-artifact@v4.3.3 # v4.3.3
-        with:
-          name: SARIF file
-          path: results.sarif
-          retention-days: 5
+      # - name: "Upload artifact"
+      #   uses: actions/upload-artifact@v4.3.3 # v4.3.3
+      #   with:
+      #     name: SARIF file
+      #     path: results.sarif
+      #     retention-days: 5
 
       # Upload the results to GitHub's code scanning dashboard.
-      - name: "Upload to code-scanning"
-        uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
-        with:
-          sarif_file: results.sarif
+      # - name: "Upload to code-scanning"
+      #   uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
+      #   with:
+      #     sarif_file: results.sarif
+
+      - name: Print Scorecard Analysis Results
+        if: always()  # Ensure this step runs even if previous steps fail.
+        run: |
+          echo "Scorecard Analysis Results:"
+          cat results.sarif  # Output the results to the console.
