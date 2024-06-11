@@ -3,7 +3,7 @@ name: Checkov Security Scan
 on:
   push:
     branches:
-      - aws-dev  # Adjust the branch if needed
+      - aws-dev 
   pull_request:
     branches:
       - aws-dev
@@ -14,26 +14,31 @@ permissions:
 jobs:
   checkov_scan:
     permissions:
-      contents: read  # for actions/checkout to fetch code
-      security-events: write  # for github/codeql-action/upload-sarif to upload SARIF results
+      contents: read 
+      #security-events: write  # GitHub Advanced Security required for SARIF upload
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.8.0 # v2.8.0
+        uses: step-security/harden-runner@v2.8.0
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@v4.1.6 # v4.1.6
+      - uses: actions/checkout@v4.1.6
 
       - name: Checkov Scan
-        uses: bridgecrewio/checkov-action@v12.2772.0 # v12.2772.0
+        uses: bridgecrewio/checkov-action@v12.2772.0
+        id: checkov
         with:
-          directory: '.'                    # Root directory to scan (adjust if needed)
-          output_format: 'cli'             # Output format (cli, json, junit_xml, sarif)
-          # Add other Checkov configuration options here if necessary (see below)
+          directory: '.'
+          output_format: 'cli'
 
-      - name: Upload SARIF file (optional)
-        if: always()  # Always run this step, even if previous steps fail
-        uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
-        with:
-          sarif_file: 'results.sarif'     # SARIF output file name (adjust if needed)
+      - name: Print Checkov Results
+        run: echo "${{ steps.checkov.outputs.results }}"  # Print to action output
+        
+      # --- GitHub Advanced Security Required ---
+      #- name: Upload SARIF file (optional) 
+      #  if: always()
+      #  uses: github/codeql-action/upload-sarif@v3.25.8 
+      #  with:
+      #    sarif_file: 'results.sarif' 
+      # ---------------------------------------- 
