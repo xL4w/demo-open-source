@@ -21,11 +21,10 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Manual Checkout
-        run: |
-          REPO_NAME=$(basename $GITHUB_REPOSITORY)
-          git clone https://${{ secrets.GH_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
-          cd $REPO_NAME
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Snyk Scan
         id: snyk_scan
