@@ -1,27 +1,16 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
-#
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
-#
-# ******** NOTE ********
-# We have attempted to detect the languages in your repository. Please check
-# the `language` matrix defined below to confirm you have the correct set of
-# supported CodeQL languages.
-#
 name: "CodeQL"
 
 on:
   push:
-    branches: [ "aws-dev" ]
+    branches: [ "aws-dev" ]  # The workflow runs on push events to the "aws-dev" branch.
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "aws-dev" ]
+    branches: [ "aws-dev" ]  # The workflow runs on pull request events targeting the "aws-dev" branch.
   schedule:
-    - cron: '15 1 * * 5'
+    - cron: '15 1 * * 5'  # The workflow runs on a schedule, at 1:15 AM UTC every Friday.
 
 permissions:
-  contents: read
+  contents: read  # The workflow has read access to repository contents.
+  # security-events: write  # Commented out as it requires GitHub Advanced Security.
 
 jobs:
   analyze:
@@ -30,55 +19,43 @@ jobs:
     permissions:
       actions: read
       contents: read
-      security-events: write
+      # security-events: write  # Commented out as it requires GitHub Advanced Security.
 
     strategy:
-      fail-fast: false
+      fail-fast: false  # Continue all matrix jobs even if one fails.
       matrix:
-        language: [ 'java', 'javascript', 'python' ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
-        # Use only 'java' to analyze code written in Java, Kotlin or both
-        # Use only 'javascript' to analyze code written in JavaScript, TypeScript or both
-        # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
+        language: [ 'java', 'javascript', 'python' ]  # The languages to analyze.
 
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@v2.8.0 # v2.8.0
+      uses: step-security/harden-runner@v2.8.0
       with:
-        egress-policy: audit
+        egress-policy: audit  # Harden the runner with egress policy audit.
 
     - name: Checkout repository
-      uses: actions/checkout@v4.1.6 # v4.1.6
+      uses: actions/checkout@v4.1.6  # Checkout the repository code.
 
-    # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3.25.8 # v3.25.8
+      uses: github/codeql-action/init@v3.25.8
       with:
-        languages: ${{ matrix.language }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
+        languages: ${{ matrix.language }}  # Initialize CodeQL for the specified languages.
 
-        # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-        # queries: security-extended,security-and-quality
-
-
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
-    # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v3.25.8 # v3.25.8
+      uses: github/codeql-action/autobuild@v3.25.8  # Automatically build the project.
 
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-
-    #   If the Autobuild fails above, remove it and uncomment the following three lines.
-    #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
-
+    # Uncomment and modify the following lines if autobuild fails and manual build steps are needed.
     # - run: |
     #     echo "Run, Build Application using script"
     #     ./location_of_script_within_repo/buildscript.sh
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3.25.8 # v3.25.8
+      id: analyze
+      uses: github/codeql-action/analyze@v3.25.8
       with:
-        category: "/language:${{matrix.language}}"
+        category: "/language:${{matrix.language}}"  # Perform CodeQL analysis.
+
+    - name: Print CodeQL Analysis Results
+      if: always()  # Ensure this step runs even if previous steps fail.
+      run: |
+        echo "CodeQL Analysis Results:"
+        cat ${{ steps.analyze.outputs.result }}  # Output the results to the console.

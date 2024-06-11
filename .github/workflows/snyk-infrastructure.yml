@@ -1,15 +1,3 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# A sample workflow that checks out your Infrastructure as Code Configuration files,
-# such as Kubernetes, Helm & Terraform, and scans them for any security issues.
-# The results are then uploaded to GitHub Security Code Scanning
-#
-# For more examples, including how to limit scans to only high-severity issues
-# and fail PR checks, see https://github.com/snyk/actions/
-
 name: Snyk Infrastructure as Code Scan
 
 on:
@@ -25,19 +13,21 @@ jobs:
     permissions: 
       contents: read
       actions: read
-      security-events: write 
+      # security-events: write  # Commented out as it requires GitHub Advanced Security
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.0 # v2.8.0
         with:
           egress-policy: audit
 
-      - name: Manual Checkout
-        run: |
-          git clone 'https://${{ secrets.GH_TOKEN }}@github.com/CTLLAW-Org/demo-open-source.git
-          cd demo-repository 
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Snyk Scan
+        id: snyk_scan
         uses: snyk/actions@b98d498629f1c368650224d6d212bf7dfa89e4bf # v0.4.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -45,9 +35,16 @@ jobs:
           command: test --sarif-file-output=snyk.sarif 
           args: --all-projects # --severity-threshold=high 
           
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
-        with:
-          sarif_file: snyk.sarif
-          checkout_path: '.' 
-          token: ${{ secrets.GH_TOKEN }}
+      # Commented out steps that require GitHub Advanced Security.
+      # - name: Upload SARIF file
+      #   uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
+      #   with:
+      #     sarif_file: snyk.sarif
+      #     checkout_path: '.' 
+      #     token: ${{ secrets.GH_TOKEN }}
+
+      - name: Print Snyk Scan Results
+        if: always()  # Ensure this step runs even if previous steps fail.
+        run: |
+          echo "Snyk Scan Results:"
+          cat snyk.sarif  # Output the results to the console.
