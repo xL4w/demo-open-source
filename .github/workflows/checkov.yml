@@ -23,7 +23,7 @@ jobs:
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@v4.1.6 # v4.1.6
+      - uses: actions/checkout@v4.1.7 # v4.1.6
 
       - name: Checkov Scan
         id: checkov_scan
