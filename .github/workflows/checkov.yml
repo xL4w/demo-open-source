@@ -44,14 +44,17 @@ jobs:
         if: always()
         run: echo "${{ steps.checkov_scan.outputs.results }}" > checkov_results.json
 
-      - name: Extract and Display Passed Checks (If Any)
+      - name: List Files in Directory
+        run: ls -la ${{ matrix.directory }}
+        
+      - name: Checkov Passed Checks (If Any)
         if: always()  # Always run, might have no output
         run: |
           echo "Checkov Scan Results (Passed Checks Only):"
           # Filter only passed checks using jq
           jq -r '.results[] | select(.result=="PASSED") | "\(.resource) - \(.check_name) (\(.check_id)): \(.file_path):\(.file_line_range)"' checkov_results.json || true 
 
-      - name: Extract and Display Failed Checks (If Any)
+      - name: Checkov Failed Checks (If Any)
         if: steps.checkov_scan.outcome != 'success'  # Only run if there are failures
         run: |
           echo "Checkov Scan Results (Failed Checks Only):"
