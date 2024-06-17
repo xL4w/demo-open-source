@@ -44,25 +44,33 @@ jobs:
         if: always()
         run: echo "${{ steps.checkov_scan.outputs.results }}" > checkov_results.json
 
-      - name: List Files in Directory
-        run: ls -la ${{ matrix.directory }}
+      - name: Check for Empty Results
+        id: check_results
+        run: |
+          if [[ -s checkov_results.json ]]; then
+            echo "results_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "results_exist=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Print Checkov Results
-        run: cat checkov_results.json        
-        
       - name: Checkov Passed Checks (If Any)
-        if: always()  # Always run, might have no output
+        if: steps.check_results.outputs.results_exist == 'true'
         run: |
           echo "Checkov Scan Results (Passed Checks Only):"
           # Filter only passed checks using jq
           jq -r '.results[] | select(.result=="PASSED") | "\(.resource) - \(.check_name) (\(.check_id)): \(.file_path):\(.file_line_range)"' checkov_results.json || true 
 
-      - name: Checkov Failed Checks (If Any)
-        if: steps.checkov_scan.outcome != 'success'  # Only run if there are failures
+      - name: Checkovy Failed Checks (If Any)
+        if: steps.check_results.outputs.results_exist == 'true' && steps.checkov_scan.outcome != 'success'  # Only run if there are failures
         run: |
           echo "Checkov Scan Results (Failed Checks Only):"
           # Filter only failed checks using jq
           jq -r '.results[] | select(.result=="FAILED") | "\(.resource) - \(.check_name) (\(.check_id)): \(.file_path):\(.file_line_range)"' checkov_results.json || true 
+
+      - name: Handle Empty Results
+        if: steps.check_results.outputs.results_exist == 'false'
+        run: |
+          echo "Warning: Checkov did not find any resources to scan."
 
       - name: Fail on Checkov Errors (Push Only)
         if: steps.checkov_scan.outcome == 'failure' && !contains(github.event_name, 'pull_request')
