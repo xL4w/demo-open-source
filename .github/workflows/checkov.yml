@@ -45,7 +45,7 @@ jobs:
         run: echo "${{ steps.checkov_scan.outputs.results }}" > checkov_results.json
 
       - name: List Files in Directory
-        run: ls -la ${{ matrix.directory }}
+        run: ls -la ${{ matrix.directory }} && cat checkov_results.json 
         
       - name: Checkov Passed Checks (If Any)
         if: always()  # Always run, might have no output
