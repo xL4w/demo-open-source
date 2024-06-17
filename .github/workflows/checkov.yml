@@ -1,9 +1,7 @@
-name: Checkov Security Scan
-
 on:
   push:
     branches:
-      - aws-dev  # Adjust the branch if needed
+      - aws-dev
   pull_request:
     branches:
       - aws-dev
@@ -18,6 +16,15 @@ jobs:
       # security-events: write  # Commented out as it requires GitHub Advanced Security
     runs-on: ubuntu-latest
     steps:
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2 # v4.0.2
+        with:
+         path: |
+           ./.github/workflows/
+         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+         restore-keys: |
+           ${{ runner.os }}-workflow-${{ github.event_name }}-       
+
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.1 # v2.8.1
         with:
@@ -30,8 +37,30 @@ jobs:
         uses: bridgecrewio/checkov-action@v12.1347.0 # v12.1347.0
         with:
           directory: '.'  # Root directory to scan (adjust if needed)
-          output_format: 'cli'  # Output format (cli, json, junit_xml, sarif)
+          output_format: 'json'  # Output format (cli, json, junit_xml, sarif)
           # Add other Checkov configuration options here if necessary
+
+      - name: Save Checkov Results to File
+        if: always()
+        run: echo "${{ steps.checkov_scan.outputs.results }}" > checkov_results.json
+
+      - name: Extract and Display Passed Checks (If Any)
+        if: always()  # Always run, might have no output
+        run: |
+          echo "Checkov Scan Results (Passed Checks Only):"
+          # Filter only passed checks using jq
+          jq -r '.results[] | select(.result=="PASSED") | "\(.resource) - \(.check_name) (\(.check_id)): \(.file_path):\(.file_line_range)"' checkov_results.json || true 
+
+      - name: Extract and Display Failed Checks (If Any)
+        if: steps.checkov_scan.outcome != 'success'  # Only run if there are failures
+        run: |
+          echo "Checkov Scan Results (Failed Checks Only):"
+          # Filter only failed checks using jq
+          jq -r '.results[] | select(.result=="FAILED") | "\(.resource) - \(.check_name) (\(.check_id)): \(.file_path):\(.file_line_range)"' checkov_results.json || true 
+
+      - name: Fail on Checkov Errors (Push Only)
+        if: steps.checkov_scan.outcome == 'failure' && !contains(github.event_name, 'pull_request')
+        run: exit 1
 
       # Commented out the step that requires GitHub Advanced Security
       # - name: Upload SARIF file (optional)
