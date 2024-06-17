@@ -18,6 +18,15 @@ jobs:
       # security-events: write  # Commented out as it requires GitHub Advanced Security
     runs-on: ubuntu-latest
     steps:
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2 # v4.0.2
+        with:
+         path: |
+           ./.github/workflows/
+         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+         restore-keys: |
+           ${{ runner.os }}-workflow-${{ github.event_name }}-       
+                 
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.1 # v2.8.1
         with:
@@ -33,16 +42,15 @@ jobs:
           output_format: 'json'  # Output format (cli, json, junit_xml, sarif)
           # Add other Checkov configuration options here if necessary
 
-      - name: Extract and Display Failed Checks
-        if: always()  # Always run this step, even if previous steps fail
+      - name: Extract and Display Failed Checks (If Any)
+        if: steps.checkov_scan.outcome != 'success'  # Only run if there are failures
         run: |
           echo "Checkov Scan Results (Failed Checks Only):"
-          echo "${{ steps.checkov_scan.outputs.results }}" | jq -r '.results.failed_checks[] | "\(.resource) - \(.check_name) (\(.check_id)): \(.file_path):\(.file_line_range)"'
-          
-      - name: Fail on Checkov Errors
-        if: steps.checkov_scan.outcome == 'failure' && !contains(github.event_name, 'pull_request')
-        run: exit 1  # This will fail the workflow if Checkov finds errors during a push
+          echo "${{ steps.checkov_scan.outputs.results }}" | jq -r '.results.failed_checks[] | "\(.resource) - \(.check_name) (\(.check_id)): \(.file_path):\(.file_line_range)"' || true  # Ensure the step doesn't fail if no failed checks
 
+      - name: Fail on Checkov Errors (Push Only)
+        if: steps.checkov_scan.outcome == 'failure' && !contains(github.event_name, 'pull_request')
+        run: exit 1
 
       # Commented out the step that requires GitHub Advanced Security
       # - name: Upload SARIF file (optional)
