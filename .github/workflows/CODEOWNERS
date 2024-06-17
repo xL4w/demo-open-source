@@ -1,0 +1,14 @@
+# .github/CODEOWNERS
+
+# Lines starting with '#' are comments.
+# Each line is a file pattern followed by one or more owners.
+
+# Default owners for everything in the repo.
+*       @CTLLaw
+*       @GTCrais
+
+# Specific rule for the GitHub Actions blocking workflow
+./.github/workflows/block-github-changes.yml @CTLLaw @GTCrais 
+
+# This directory is owned by the default code owners
+./.github/

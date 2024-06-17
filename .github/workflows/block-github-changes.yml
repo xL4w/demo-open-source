@@ -1,0 +1,20 @@
+name: Block Changes to .github Directory
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - staging
+      - aws-dev
+
+jobs:
+  block-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for changes to .github
+        run: |
+          if git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -q "^\.github/"; then
+            echo "Pull requests that change the .github directory are not allowed."
+            exit 1
+          fi
