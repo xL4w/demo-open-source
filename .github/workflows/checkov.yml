@@ -3,7 +3,7 @@ name: Checkov Security Scan
 on:
   push:
     branches:
-      - aws-dev  # Adjust the branch if needed
+      - aws-dev
   pull_request:
     branches:
       - aws-dev
@@ -47,13 +47,13 @@ jobs:
         run: echo "${{ steps.checkov_scan.outputs.results }}" > checkov_results.json
 
       - name: Extract and Display Failed Checks (If Any)
-        if: steps.checkov_scan.outcome != 'success'  # Only run if there are failures
+        if: ${{ steps.checkov_scan.outcome != 'success' }}  # Only run if there are failures
         run: |
           echo "Checkov Scan Results (Failed Checks Only):"
           jq -r '.results.failed_checks[] | "\(.resource) - \(.check_name) (\(.check_id)): \(.file_path):\(.file_line_range)"' checkov_results.json || true
 
       - name: Fail on Checkov Errors (Push Only)
-        if: steps.checkov_scan.outcome == 'failure' && !contains(github.event_name, 'pull_request')
+        if: ${{ steps.checkov_scan.outcome == 'failure' && !contains(github.event_name, 'pull_request') }}
         run: exit 1
 
       # Commented out the step that requires GitHub Advanced Security
@@ -62,3 +62,4 @@ jobs:
       #   uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
       #   with:
       #     sarif_file: 'results.sarif'  # SARIF output file name (adjust if needed)
+      
