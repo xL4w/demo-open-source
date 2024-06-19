@@ -8,7 +8,7 @@
 *       @GTCrais
 
 # Specific rule for the GitHub Actions blocking workflow
-./.github/workflows/block-github-changes.yml @CTLLaw @GTCrais 
+.github/workflows/block-github-changes.yml @CTLLaw @GTCrais 
 
 # This directory is owned by the default code owners
-./.github/
+.github/
