@@ -41,10 +41,6 @@
               output_file_path: console,results.xml
               # Add other Checkov configuration options here if necessary
 
-          - name: Save Checkov Results to File
-            if: always()
-            run: echo "${{ steps.checkov_scan.outputs.results }}" > results.xml
-
           - name: Fail on Checkov Errors (Push Only)
             if: steps.checkov_scan.outcome == 'failure' && !contains(github.event_name, 'pull_request')
             run: exit 1
