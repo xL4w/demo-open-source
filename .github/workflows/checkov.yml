@@ -40,7 +40,7 @@ jobs:
         uses: bridgecrewio/checkov-action@v12.2784.0 # v12.2784.0
         with:
           directory: '.'  # Root directory to scan (adjust if needed)
-          output_format: cli --quiet # Output format (cli,csv,cyclonedx,cyclonedx_json,json,junitxml,github_failed_only,gitlab_sast,sarif,spdx)
+          output_format: github_failed_only # Output format (cli,csv,cyclonedx,cyclonedx_json,json,junitxml,github_failed_only,gitlab_sast,sarif,spdx)
           output_file_path: console,results.xml
           # Add other Checkov configuration options here if necessary
 
