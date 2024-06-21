@@ -16,13 +16,22 @@ jobs:
       # security-events: write  # Commented out as it requires GitHub Advanced Security
 
     steps:
+      - name: Clear Cache
+        uses: actions/cache@v4.0.2 # v4.0.2
+        with:
+         path: |
+           ./.github/workflows/
+         key: ${{ runner.os }}-workflow-${{ github.event_name }}-${{ github.sha }}
+         restore-keys: |
+           ${{ runner.os }}-workflow-${{ github.event_name }}-       
+                 
       - name: Harden Runner
         uses: step-security/harden-runner@v2.8.1 # v2.8.1
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@v4.1.6 # v4.1.6
+        uses: actions/checkout@v4.1.7 # v4.1.7
         with:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout the specific PR commit
 
