@@ -44,7 +44,7 @@ jobs:
         with:
           egress-policy: audit
       - name: Checkout Code
-        uses: actions/checkout@v4.1.7 # v4.1.7
+        uses: actions/checkout@v4.2.0 # v4.1.7
       - name: Verify working directory
         run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
         continue-on-error: true
@@ -67,7 +67,7 @@ jobs:
           chmod +x ./.github/workflows/scripts/check-reviewers.sh
         continue-on-error: true  
       - name: Checkout code
-        uses: actions/checkout@v4.1.7 # v4.1.7
+        uses: actions/checkout@v4.2.0 # v4.1.7
       - name: Attempt direct push
         run: |
           git config user.name "GitHub Actions Bot"
@@ -112,7 +112,7 @@ jobs:
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@v4.1.7 # v4.1.7
+        uses: actions/checkout@v4.2.0 # v4.1.7
       - name: Verify working directory
         run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
         continue-on-error: true
@@ -144,7 +144,7 @@ jobs:
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@v4.1.7 # v4.1.7
+        uses: actions/checkout@v4.2.0 # v4.1.7
       - name: Verify working directory
         run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
         continue-on-error: true
@@ -182,7 +182,7 @@ jobs:
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@v4.1.7 # v4.1.7
+        uses: actions/checkout@v4.2.0 # v4.1.7
       - name: Attempt direct push
         run: |
           git config user.name "GitHub Actions Bot"
@@ -224,7 +224,7 @@ jobs:
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@v4.1.7 # v4.1.7
+        uses: actions/checkout@v4.2.0 # v4.1.7
       - name: Attempt direct push
         run: |
           git config user.name "GitHub Actions Bot"
