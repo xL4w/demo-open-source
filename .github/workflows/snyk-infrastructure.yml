@@ -31,7 +31,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@v4.1.7 # v4.1.7
+        uses: actions/checkout@v4.2.1 # v4.1.7
         with:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout the specific PR commit
 
