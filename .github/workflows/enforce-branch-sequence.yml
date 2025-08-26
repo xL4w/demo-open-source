@@ -42,7 +42,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@v4.2.2 # v4.1.7
+        uses: actions/checkout@v5.0.0 # v4.1.7
 
       - name: Enforce branch protection
         run: |
@@ -63,7 +63,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2 # v4.1.7
+        uses: actions/checkout@v5.0.0 # v4.1.7
 
       - name: Print PR sequence
         run: |
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2 # v4.1.7
+        uses: actions/checkout@v5.0.0 # v4.1.7
 
       - name: Enforce initial PR target
         run: |
