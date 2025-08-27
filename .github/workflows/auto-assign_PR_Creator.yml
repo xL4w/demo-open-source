@@ -26,7 +26,7 @@ jobs:
            ${{ runner.os }}-workflow-${{ github.event_name }}-             
 
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.10.1 # v2.8.1
+        uses: step-security/harden-runner@v2.13.0 # v2.8.1
         with:
           egress-policy: audit
 
