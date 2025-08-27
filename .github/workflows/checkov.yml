@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Clear Cache
-        uses: actions/cache@v4.1.2 # v4.0.2
+        uses: actions/cache@v4.2.4 # v4.0.2
         with:
           path: |
             ./.github/workflows/
