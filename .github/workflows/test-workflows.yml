@@ -40,7 +40,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-workflow-${{ github.event_name }}-             
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.10.1 # v2.8.1
+        uses: step-security/harden-runner@v2.12.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout Code
@@ -108,7 +108,7 @@ jobs:
           - { source: 'aws-dev', target: 'master', shouldFail: true, message: 'Creating a pull request directly from aws-dev to master branch should fail. You need to first merge to staging.' }
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.10.1 # v2.8.1
+        uses: step-security/harden-runner@v2.12.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout code
@@ -140,7 +140,7 @@ jobs:
           - { creator: '4k4xs4pH1r3-2', target: 'aws-dev', message: '4k4xs4pH1r3-2 creating a pull request to aws-dev should be successful and automatically trigger review.' }
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.10.1 # v2.8.1
+        uses: step-security/harden-runner@v2.12.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout code
@@ -178,7 +178,7 @@ jobs:
           - { user: '4k4xs4pH1r3-2', target: 'master', shouldFail: true, message: '4k4xs4pH1r3-2 creating a pull request to the master branch should fail as they are not allowed to push directly to the master branch.' }
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.10.1 # v2.8.1
+        uses: step-security/harden-runner@v2.12.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout code
@@ -220,7 +220,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.10.1 # v2.8.1
+        uses: step-security/harden-runner@v2.12.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout code
