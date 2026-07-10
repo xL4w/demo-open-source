@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Clear Cache
-        uses: actions/cache@v4.3.0 # v4.0.2
+        uses: actions/cache@v6.1.0 # v4.0.2
         with:
          path: |
            ./.github/workflows/
@@ -26,12 +26,12 @@ jobs:
            ${{ runner.os }}-workflow-${{ github.event_name }}-       
                  
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.16.0 # v2.8.1
+        uses: step-security/harden-runner@v2.20.0 # v2.8.1
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@v5.0.0 # v4.1.7
+        uses: actions/checkout@v7.0.0 # v4.1.7
         with:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout the specific PR commit
 
@@ -55,7 +55,7 @@ jobs:
           
 
       # - name: Upload SARIF file
-      #   uses: github/codeql-action/upload-sarif@v3.25.8 # v3.25.8
+      #   uses: github/codeql-action/upload-sarif@codeql-bundle-v2.26.0 # v3.25.8
       #   with:
       #     sarif_file: snyk.sarif
       #     checkout_path: '.' 
