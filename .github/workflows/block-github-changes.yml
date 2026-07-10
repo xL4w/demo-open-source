@@ -27,7 +27,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request_target' && github.event.action != 'closed' }}
     steps:
       - name: Clear Cache
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ./.github/workflows/
@@ -36,12 +36,12 @@ jobs:
             ${{ runner.os }}-workflow-${{ github.event_name }}-
 
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.16.0
+        uses: step-security/harden-runner@v2.20.0
         with:
           egress-policy: audit
                   
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v7.0.0
 
       - name: Check for changes to .github
         run: |
