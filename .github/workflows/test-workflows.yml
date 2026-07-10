@@ -32,7 +32,7 @@ jobs:
         branch: [master, staging, aws-dev]
     steps: 
       - name: Clear Cache
-        uses: actions/cache@v4.3.0 # v4.0.2
+        uses: actions/cache@v6.1.0 # v4.0.2
         with:
          path: |
            ./.github/workflows/
@@ -40,11 +40,11 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-workflow-${{ github.event_name }}-             
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.16.0 # v2.8.1
+        uses: step-security/harden-runner@v2.20.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout Code
-        uses: actions/checkout@v5.0.0 # v4.1.7
+        uses: actions/checkout@v7.0.0 # v4.1.7
       - name: Verify working directory
         run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
         continue-on-error: true
@@ -67,7 +67,7 @@ jobs:
           chmod +x ./.github/workflows/scripts/check-reviewers.sh
         continue-on-error: true  
       - name: Checkout code
-        uses: actions/checkout@v5.0.0 # v4.1.7
+        uses: actions/checkout@v7.0.0 # v4.1.7
       - name: Attempt direct push
         run: |
           git config user.name "GitHub Actions Bot"
@@ -108,11 +108,11 @@ jobs:
           - { source: 'aws-dev', target: 'master', shouldFail: true, message: 'Creating a pull request directly from aws-dev to master branch should fail. You need to first merge to staging.' }
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.16.0 # v2.8.1
+        uses: step-security/harden-runner@v2.20.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@v5.0.0 # v4.1.7
+        uses: actions/checkout@v7.0.0 # v4.1.7
       - name: Verify working directory
         run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
         continue-on-error: true
@@ -140,11 +140,11 @@ jobs:
           - { creator: '4k4xs4pH1r3-2', target: 'aws-dev', message: '4k4xs4pH1r3-2 creating a pull request to aws-dev should be successful and automatically trigger review.' }
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.16.0 # v2.8.1
+        uses: step-security/harden-runner@v2.20.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@v5.0.0 # v4.1.7
+        uses: actions/checkout@v7.0.0 # v4.1.7
       - name: Verify working directory
         run: pwd && ls -la && ls -la ./.github/workflows && ls -la ./.github/workflows/scripts/
         continue-on-error: true
@@ -178,11 +178,11 @@ jobs:
           - { user: '4k4xs4pH1r3-2', target: 'master', shouldFail: true, message: '4k4xs4pH1r3-2 creating a pull request to the master branch should fail as they are not allowed to push directly to the master branch.' }
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.16.0 # v2.8.1
+        uses: step-security/harden-runner@v2.20.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@v5.0.0 # v4.1.7
+        uses: actions/checkout@v7.0.0 # v4.1.7
       - name: Attempt direct push
         run: |
           git config user.name "GitHub Actions Bot"
@@ -220,11 +220,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2.16.0 # v2.8.1
+        uses: step-security/harden-runner@v2.20.0 # v2.8.1
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@v5.0.0 # v4.1.7
+        uses: actions/checkout@v7.0.0 # v4.1.7
       - name: Attempt direct push
         run: |
           git config user.name "GitHub Actions Bot"
