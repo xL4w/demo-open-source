@@ -62,19 +62,24 @@ dd {
   margin-left: 0;
 }
 
-// Code
+// Monospaced
 // --------------------------------------------------
 
 tt,
-code {
+code,
+samp {
+  // stylelint-disable-next-line primer/typography
   font-family: $mono-font;
+  // stylelint-disable-next-line primer/typography
   font-size: $font-size-small;
 }
 
 pre {
   margin-top: 0;
   margin-bottom: 0;
+  // stylelint-disable-next-line primer/typography
   font-family: $mono-font;
+  // stylelint-disable-next-line primer/typography
   font-size: $font-size-small;
 }
 

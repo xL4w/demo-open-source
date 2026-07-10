@@ -5,7 +5,9 @@
     // stylelint-disable-next-line primer/spacing
     padding: 5px;
     overflow: hidden;
+    // stylelint-disable-next-line primer/typography
     font-size: $font-size-small;
+    // stylelint-disable-next-line primer/typography
     line-height: $lh-condensed-ultra;
     text-align: left;
     white-space: nowrap;
@@ -13,17 +15,18 @@
 
   .blob-num {
     // stylelint-disable-next-line primer/spacing
-    padding: 10px $spacer-2 9px;
+    padding: 10px var(--base-size-8) 9px;
     text-align: right;
-    background: var(--color-bg-primary);
+    background: var(--bgColor-default, var(--color-canvas-default));
     border: 0;
   }
 
   tr { border-top: 0; }
 
   th {
+    // stylelint-disable-next-line primer/typography
     font-weight: $font-weight-bold;
-    background: var(--color-bg-tertiary);
+    background: var(--bgColor-muted, var(--color-canvas-subtle));
     border-top: 0;
   }
 }
