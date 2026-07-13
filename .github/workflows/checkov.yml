@@ -33,7 +33,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@v5.0.0 # v4.1.7
+        uses: actions/checkout@v7.0.0 # v4.1.7
 
       - name: Checkov Scan
         id: checkov_scan
