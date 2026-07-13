@@ -27,7 +27,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request_target' && github.event.action != 'closed' }}
     steps:
       - name: Clear Cache
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ./.github/workflows/
