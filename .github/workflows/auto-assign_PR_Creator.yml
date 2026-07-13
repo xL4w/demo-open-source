@@ -31,7 +31,7 @@ jobs:
           egress-policy: audit
 
       - name: Assign PR Creator
-        uses: actions/github-script@v8.0.0 # v7.0.1
+        uses: actions/github-script@v9.0.0 # v7.0.1
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
